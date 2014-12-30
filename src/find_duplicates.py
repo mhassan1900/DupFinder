@@ -1,4 +1,4 @@
-#!/Users/mahmud/bin/python
+#!/usr/bin/env python
 """
 ##########################################################################
 # File:     find_duplicate_files.py 
@@ -22,106 +22,136 @@ Usage:
 
 import DuplicateFinder 
 import sys
+import argparse
+import re
 
 DEBUG = False
 
 
-def Usage():
-    """Prints help and usage message"""
-    print __doc__
-    exit()
+
+def main2(args):
+    """Argument Parser & caller"""
+
+    parser = argparse.ArgumentParser(description="Duplicate Finder (CMD line)") 
+
+    parser.add_argument("-d", "--dir", dest='srchlist', action='append',
+               help="Directories to search (can specify multiple times, twice for column mode)") 
+    parser.add_argument("-e", "--exclude", dest='exclist', action='append', 
+               help="Directories to exclude (can specify multiple times)") 
+    parser.add_argument("-c", "--column", default=False, action='store_true', 
+               help="Run in column mode. Note usage of -d options should be exactly twice in this mode") 
+
+    parsed_args = parser.parse_args(args)
+
+    # -- print some info --
+    if not parsed_args.srchlist: parsed_args.srchlist = []
+    if not parsed_args.exclist: parsed_args.exclist = []
+
+    print 'INFO. dirs to search :'
+    for p in parsed_args.srchlist: print p
+    print 'INFO. dirs to exclude:'
+    for p in parsed_args.exclist: print p
+    print 'INFO. column mode    :', parsed_args.column
 
 
 
-def main():
-   """Executes duplicate file finder functions by building data-structure
-   and calling methods"""
+    if len(parsed_args.srchlist)==0: 
+        print '\nNo directory list specified; nothing to report. Exiting.\n'
+        return
 
-   # ------------------------
-   # argument parsing section
-   # ------------------------
-   interactive = (len(sys.argv) < 2)   # non-interactive 
-   col_mode = True                     # by default map to 2 roots/column mode 
+    # build data struct
+    dup_obj = build_dupfinder(parsed_args.srchlist, parsed_args.exclist)
 
-   if interactive: 
-      print "No directory entered...switching to interactive mode"
-      print "Enter directories separated by space for checking: "
-      try: 
-          mypath_str = raw_input () 
-      except KeyboardInterrupt:     # eg, hit CTRL-C
-          print
-          exit() 
+    print 'INFO. matched dirs (relative) to exclude:',
+    print dup_obj._ignorematching
 
-      mypath_list = mypath_str.split()
+    if parsed_args.column and len(dup_obj._root_dirlist) != 2:
+        print "ERROR. Column mode must have only 2 roots!" 
+        print parser.format_help()
+        return
 
-   else:    # batch mode
-      sys.argv.pop(0)
-      mypath_list = sys.argv
 
-   # check for switches 
-   if ('-help' in mypath_list) or ('-h' in mypath_list):   Usage() 
-
-   if '-column' in mypath_list: mypath_list.remove('-column') 
-   elif '-col'  in mypath_list: mypath_list.remove('-col') 
-   elif '-c'    in mypath_list: mypath_list.remove('-c') 
-   else:
-       col_mode = False
-       
-
-   if col_mode and (len(mypath_list) != 2):
-       print "ERROR. Column mode must have only 2 roots!" 
-       Usage()
+    # search
+    if parsed_args.column:
+        colmode_srch(dup_obj)
+    else:
+        stdmode_srch(dup_obj)
 
 
 
-   # initialize & then update
-   # ------------------------
-   print "** 1. Creating file/directory structure **" 
 
-   dup_files = DuplicateFinder.DuplicateFinder() 
+def build_dupfinder(srchlist, exclist=[]):
+    """Build DuplicateFinder
+        srchlist:  list of directories to search
+        exclist :  list of directories to exclude 
+    """
 
-   for mypath in mypath_list:
-       dup_files.update(mypath) 
+    # initialize & then update
+    # ------------------------
+    print "** 1. Creating file/directory structure **" 
+
+    dup_obj = DuplicateFinder.DuplicateFinder() 
+
+    for mypath in exclist:
+       dup_obj.add2ignore(mypath) 
+       print "      Ignoring: ", mypath
+
+    for mypath in srchlist:
+       dup_obj.update(mypath) 
        print "      Building structure for: ", mypath
 
+    if (DEBUG): dup_obj.dump()
+    print "-- Directory structure creation complete --\n"
 
-   if (DEBUG): dup_files.dump()
-   print "-- Directory structure creation complete --\n"
-
-
-   # report duplicates
-   # -----------------
-   print "** 2. Finding duplicates **"
-
-   dup_table = dup_files.get_duplicates()
+    return dup_obj
 
 
-   if not col_mode:
-       
-       print '-' * 70
-       print "  Raw table { 'md5sum1' : [sz, file1, file2, file3, ...], ... }"  
-       print '-' * 70
 
-       # NOTE. There is a big BUG in dump_duplicates(0) call!!
-       # dup_files.dump_duplicates(0)  
-       logs, sizes = dup_files.dump_duplicates_list()
-       for l in logs: print l
-       return
+def stdmode_srch(dup_obj):
+    """Std mode search of directories in duplicate object"""
+
+    # report duplicates
+    # -----------------
+    print "** 2. Finding duplicates **"
+
+    dup_table = dup_obj.get_duplicates()
+
+    print '-' * 70
+    print "  Raw table { 'md5sum1' : [sz, file1, file2, file3, ...], ... }"  
+    print '-' * 70
+
+    # NOTE. There is a big BUG in dump_duplicates(0) call!!
+    # dup_obj.dump_duplicates(0)  
+    logs, sizes = dup_obj.dump_duplicates_list()
+    for l in logs: print l
+    
+    #print '*' * 50     # for debug
+    #print dup_table    # for debug
 
 
-   # else start the more exhaustive search
-   # data-structure conversion routine
-   # ----------------------------------------
-   root1 = mypath_list.pop() 
-   root2 = mypath_list.pop() 
 
-   # each of these will store a list of lists 
-   root1_list = []   
-   root2_list = []
+def colmode_srch(dup_obj):
+    """Column mode search of directories in duplicate object"""
 
-   import re
+    # report duplicates
+    # -----------------
+    print "** 2. Finding duplicates **"
 
-   for flist in dup_table.values():
+
+    # start the more exhaustive search
+    # data-structure conversion routine
+    # ----------------------------------------
+    root1 = dup_obj._root_dirlist[0] 
+    root2 = dup_obj._root_dirlist[1] 
+
+    # each of these will store a list of lists 
+    root1_list = []   
+    root2_list = []
+
+    
+    dup_table = dup_obj.get_duplicates()
+
+    for flist in dup_table.values():
         # print "flist => ", flist - all files in list have same content 
         sz = flist.pop(0) 
         flist1 =  [] 
@@ -129,6 +159,8 @@ def main():
         for fname in flist:
             if re.search(r'/.svn', fname):       # skip ".svn" files
                 continue
+            #if re.search(r'/.git', fname):       # skip ".git" files
+            #    continue
             if re.search(root1, fname): 
                 fname = re.sub(root1 + '/', '', fname)
                 flist1.append(fname) 
@@ -143,17 +175,14 @@ def main():
         root2_list.append( flist2 ) 
 
 
-   # print "DIR1 LIST len", len(root1_list), root1_list
-   # print "DIR2 LIST len", len(root2_list), root2_list
+    # print "DIR1 LIST len", len(root1_list), root1_list
+    # print "DIR2 LIST len", len(root2_list), root2_list
 
+    # display routine
+    # root1_list & root2_list have everything
+    # -------------------------------------
 
-
-
-   # display routine
-   # root1_list & root2_list have everything
-   # -------------------------------------
-
-   """
+    """
      prints in following format 
      ======================
      root1     |    root2
@@ -165,14 +194,14 @@ def main():
                |    filec
                |
      ======================
-   """
-    
+    """
 
-   spc = ' ' * (40 - len(root1))
-   print '=' * 90 
-   print root1, spc, " | \t", root2
-   print '=' * 90 
-   for (flist1,flist2) in zip(root1_list,root2_list):
+
+    spc = ' ' * (40 - len(root1))
+    print '=' * 90 
+    print root1, spc, " | \t", root2
+    print '=' * 90 
+    for (flist1,flist2) in zip(root1_list,root2_list):
        # flist1 and flist2 contain lists of identical files 
        # but flist1 files may not match flist2 files 
        flist1 = sorted (flist1)
@@ -186,13 +215,15 @@ def main():
            spc = ' ' * (40 - len(f1))
            print  f1 , spc,  " | \t", f2 
 
-   print " " * 40, "  | " 
-   print '=' * 90 
+    print " " * 40, "  | " 
+    print '=' * 90 
        
 
 
 
+
 if (__name__ == "__main__"):
-   main()   
+   #main()   
+   main2(sys.argv[1:])   
    
 

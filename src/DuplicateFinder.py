@@ -9,6 +9,7 @@
 #           docstrings can be used to get more detailed documentation. 
 ##########################################################################
 
+import re 
 import os
 import os.path 
 from hashsum import md5sum
@@ -82,6 +83,7 @@ class DuplicateFinder:
         self._dup_fdict = dict()    
         self._found_dup = 0
         self._ignorelist = []   # explicit list of fully qualified directory name to ignore
+        self._ignorematching = set( ['.svn', '.git'] ) # list of matching dirs to ignore by default
 
         if (dname == None):
             self._root_dirlist = []
@@ -292,11 +294,26 @@ class DuplicateFinder:
     def _create_fdict (self, cdir):
         """Returns dictionary of data structure"""
 
-        for root, dirs, files in os.walk( cdir ):
-            for f in files: 
-                if root in self._ignorelist:
-                    continue
+        ## print 'ignorelist', self._ignorelist # DEBUG
 
+
+        for root, dirs, files in os.walk( cdir ):
+
+            root_tokens = set( re.split(r'[\/\\]', os.path.dirname(root) ) )
+            if len(set(root_tokens).intersection(self._ignorematching)) > 0:
+                ## print '--> matched', set(root_tokens).intersection(self._ignorematching)
+                continue
+
+            absroot = os.path.abspath(root) ## print 'looking at ', absroot # DEBUG
+            ignore_files = False
+            for iroot in self._ignorelist:
+                if absroot.startswith(iroot):
+                     ## print 'skipping ', root ## DEBUG
+                     ignore_files = True
+                     break
+            if ignore_files: continue
+
+            for f in files: 
                 filename = os.path.join(root, f)
                 try:
                     filesize = os.path.getsize(filename)

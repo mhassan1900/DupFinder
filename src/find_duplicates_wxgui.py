@@ -278,6 +278,9 @@ class MyFrame(wx.Frame):
            if os.path.exists(p):
                self.cprint("   Ignoring everthing under: " + os.path.abspath(p) + "\n")
                dup_files.add2ignore(os.path.abspath(p))
+        
+        self.cprint( 'INFO. matched dirs (relative) to exclude:' )
+        self.cprint( repr(dup_files._ignorematching) +'\n' )
 
         # go by what is in dirlist NOT what is displayed    # TODO
         for p in self.dirlist:
