@@ -12,6 +12,7 @@ import os.path
 import DuplicateFinder as Dup
 import wx
 from find_duplicates_wxstdpanel import StdPanel  
+from find_duplicates_wxmainpanel import MainPanel  
 
 
 _DEFWIDTH_ = 600
@@ -31,12 +32,14 @@ class MyFrame(wx.Frame):
         # then call same 4 high level routines - init, configure, bind, display
 
         #  initUI() -->
-        mainpanel = wx.Panel(self)      
-        notebook = wx.Notebook(mainpanel)
+        toppanel = wx.Panel(self)      
+        notebook = wx.Notebook(toppanel)
+        mainpanel = MainPanel(notebook)
         stdpanel = StdPanel(notebook)
         cmppanel = StdPanel(notebook)
 
         #  configureUI() -->
+        notebook.AddPage(mainpanel, "Main")
         notebook.AddPage(stdpanel, "Standard View")
         notebook.AddPage(cmppanel, "Compare View")
 
@@ -46,10 +49,14 @@ class MyFrame(wx.Frame):
         mainsizer = wx.BoxSizer(wx.VERTICAL)     # break up into rows
         mainsizer.Add(notebook, 1, wx.ALL|wx.EXPAND) # , 5) # <-- ??
         # self.Layout() # we don't really need this right?
-        mainpanel.SetSizer(mainsizer)
-        mainpanel.Fit()
+        toppanel.SetSizer(mainsizer)
+        toppanel.Fit()
         self.Fit()
         self.Show() 
+
+
+
+
 
 
 
