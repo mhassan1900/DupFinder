@@ -61,6 +61,20 @@ class CmpPanel(StdPanel):
 ##      self.popupmenu = self.createPopupMenu()
 
 
+    def clearResults(self,e=None):
+        pass
+
+    def bindUI(self):               
+        """Binds any mouse functions to the widgets in this section"""
+
+        # left buttons
+        self.b_clearresults.Bind(wx.EVT_BUTTON, self.clearResults) 
+
+##      self.clbx_results.Bind(wx.EVT_LISTBOX, self.checkSelected)
+##      self.clbx_results.Bind(wx.EVT_CHECKLISTBOX, self.processCheckedResults)
+
+        self.Bind(wx.EVT_CONTEXT_MENU, self.showPopup)
+ 
 
     def displayUI(self):
         """Actually displays the different widgets of the UI. Has most of the grid 

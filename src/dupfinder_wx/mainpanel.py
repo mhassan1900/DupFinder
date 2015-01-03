@@ -356,38 +356,31 @@ class MainPanel(wx.Panel):
         self.cprint("** 2. Finding duplicates **\n")
    
         dup_table = dup_obj.get_duplicates()
+
+        #TODO. This stuff is redundant now...
         self.srch_results_list, self.srch_sizes_list =  dup_obj.dump_duplicates_list()
 
 
         self.cprint("-- Duplicate listing complete --\n")
 
         if compare_mode:
-            self.displayCmpview()
+            self.cmppanel.dup_table = dup_table
+            self.cmppanel.displayDuplicates()
+            self.stdpanel.dirlist = self.dirlist
+            self.stdpanel.ignorelist = self.ignorelist
             self.cprint('** Check "Compare View" tab for results **\n') 
         else:       
-            self.displayStdview()
-            ## for t in self.srch_results_list: self.cprint(t+'\n')  # for DEBUG
+            self.stdpanel.dup_table = dup_table
+            self.stdpanel.dirlist = self.dirlist
+            self.stdpanel.ignorelist = self.ignorelist
+            self.stdpanel.displayDuplicates()
+            for t in self.srch_results_list: self.cprint(t+'\n')  # for DEBUG
             self.cprint('** Check "Standard View" tab for results **\n') 
 
         self.cprint()
 
         ##print 'DUP TABLE (DEBUG)' 
         ##for k,v in dup_table.items(): print k, '->', v
-
-
-
-    # -------------------------------------------------------------------------------- #
-    def displayCmpview(self):
-        """Displays the cmpview tab"""
-        pass
-
-
-    # -------------------------------------------------------------------------------- #
-    def displayStdview(self):
-        """Displays the stdview tab"""
-        for t in self.srch_results_list:
-            self.stdpanel.clbx_results.Append(t)  
-
 
 
     # -------------------------------------------------------------------------------- #
@@ -427,12 +420,12 @@ class MainPanel(wx.Panel):
         if dpath == '': 
             return
         elif dpath in self.dirlist:
-            self.cprint ("Warning. Dir already added to search list. %s will not be added" % (dpath))
+            self.cprint ("Warning. Dir already added to search list. %s will not be added\n" % (dpath))
         elif os.path.exists(dpath):
             self.dirlist.append(dpath)  # superfluous?
             self.lbx_dirs1.AppendAndEnsureVisible(dpath)
         else:
-            self.cprint("Warning. Dir path does not exist. %s will not be added" % (dpath))    
+            self.cprint("Warning. Dir path does not exist. %s will not be added\n" % (dpath))    
 
     # -------------------------------------------------------------------------------- #
     def onAdd2(self, e=None):
@@ -443,12 +436,12 @@ class MainPanel(wx.Panel):
         if dpath == '': 
             return
         elif dpath in self.ignorelist:
-            self.cprint ("Warning. Dir already added to exclude list. %s will not be added" % (dpath))
+            self.cprint ("Warning. Dir already added to exclude list. %s will not be added\n" % (dpath))
         elif os.path.exists(dpath):
             self.ignorelist.append(dpath)  # superfluous?
             self.lbx_dirs2.AppendAndEnsureVisible(dpath)
         else:
-            self.cprint("Warning. Dir path does not exist. %s will not be added" % (dpath))    
+            self.cprint("Warning. Dir path does not exist. %s will not be added\n" % (dpath))    
 
 
  
@@ -493,7 +486,7 @@ class MainPanel(wx.Panel):
 
        dpath = ddsel.GetPath() 
        if dpath in self.dirlist:
-           self.cprint("Warning. Dir already added to list. %s will not be added" % (dpath))
+           self.cprint("Warning. Dir already added to list. %s will not be added\n" % (dpath))
            return
 
        self.dirlist.append(dpath)
@@ -515,7 +508,7 @@ class MainPanel(wx.Panel):
 
        dpath = ddsel.GetPath() 
        if dpath in self.ignorelist:
-           self.cprint("Warning. Dir already added to ignore list. %s will not be added" % (dpath))
+           self.cprint("Warning. Dir already added to ignore list. %s will not be added\n" % (dpath))
            return
  
        self.ignorelist.append(dpath)

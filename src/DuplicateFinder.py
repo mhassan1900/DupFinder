@@ -33,11 +33,13 @@ def get_qual(fsize):
 
 
 
-def format_size(fsize):
-    """Returns str formatted size of fsize in bytes"""
+def format_size(fsize, cround=2):
+    """Returns str formatted size of fsize in bytes. Post conversion
+    rounding given by cround"""
     fsize, qual = get_qual(fsize) 
     qual = qual[0] if qual != '' else '' # just use initial
-    fsize_str = str(fsize) + ' ' + qual + 'B' 
+    rsize = int(round(fsize,0)) if cround==0 else round(fsize,cround)
+    fsize_str = str(rsize) + ' ' + qual + 'B' 
     return fsize_str 
     
 
