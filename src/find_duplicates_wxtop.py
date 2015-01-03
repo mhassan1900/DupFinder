@@ -32,21 +32,28 @@ class MyFrame(wx.Frame):
         # frame should always have a panel even if calls hierarchically
         # then call same 4 high level routines - init, configure, bind, display
 
-        #  initUI() -->
+        #  -- initUI() --
         toppanel = wx.Panel(self)      
         notebook = wx.Notebook(toppanel)
         mainpanel = MainPanel(notebook)
         stdpanel = StdPanel(notebook)
         cmppanel = CmpPanel(notebook)
 
-        #  configureUI() -->
+        #  -- configureUI() --
         notebook.AddPage(mainpanel, "Main")
         notebook.AddPage(stdpanel, "Standard View")
         notebook.AddPage(cmppanel, "Compare View")
+        mainpanel.set_stdview(stdpanel) 
+        mainpanel.set_cmpview(cmppanel) 
 
-        #  bundUI() -->
+        #  -- bindUI() --
+        self.Bind(wx.EVT_BUTTON, self.quitApp, mainpanel.b_quit)
+        self.Bind(wx.EVT_BUTTON, self.quitApp, stdpanel.b_quit)
+        self.Bind(wx.EVT_BUTTON, self.quitApp, cmppanel.b_quit)
+        self.Bind(wx.EVT_CLOSE, self.quitApp)
 
-        #  displayUI() -->
+
+        #  -- displayUI() --
         mainsizer = wx.BoxSizer(wx.VERTICAL)     # break up into rows
         mainsizer.Add(notebook, 1, wx.ALL|wx.EXPAND) # , 5) # <-- ??
         # self.Layout() # we don't really need this right?
@@ -56,7 +63,11 @@ class MyFrame(wx.Frame):
         self.Show() 
 
 
-
+    def quitApp(self, e):
+        """Just about only top (frame) level funcitonality"""
+        # print 'event reached FRAME'
+        # self.Close()      # do not use Close() indiscriminately
+        self.Destroy()
 
 
 

@@ -20,8 +20,15 @@ _BUTWIDTH_ = 130
 # StdPanel class definition
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
+
 class MainPanel(wx.Panel):
-    def __init__(self, parent):
+
+    def __init__(self, parent, stdpanel=None, cmppanel=None):
+        '''Custom panel that has most of the functionality of the DupFinder GUI. 
+        It expects to pass data to a stdpanel & cmppanel for display & processing.
+        These two are needed during initialization OR set later on via set_stdview()
+        and set_cmpview()'''
+
         wx.Panel.__init__(self, parent=parent)
 
         # variables need for non-GUI execution
@@ -30,6 +37,9 @@ class MainPanel(wx.Panel):
         self.srch_results_list = []     # list of names in search results (includes comments)
         self.srch_sizes_list = []       # list of sizes from search results
         self.filesel_list = []          # list of (checked) selections from search results
+
+        self.stdpanel = stdpanel
+        self.cmplanel = cmppanel
 
         self.initUI()                   # create all the widgets
         self.configureUI()              # configures widgets additionally 
@@ -68,7 +78,7 @@ class MainPanel(wx.Panel):
 
         self.st_extraopt = wx.StaticText(self, label='(Extra Options)')
         self.b_sel2 = wx.Button(self, label='Select Exclusion(s)', size=(_BUTWIDTH_,-1))
-        self.b_skip2 = wx.Button(self, label='Skip Matches')
+        self.b_skipmatch = wx.Button(self, label='Skip Matches')
 
         ## self.st_results = wx.StaticText(self, label='Search results') 
         ## self.clbx_results = wx.CheckListBox(self, style=wx.HSCROLL|wx.LB_NEEDED_SB|wx.LB_EXTENDED, 
@@ -82,16 +92,19 @@ class MainPanel(wx.Panel):
 
 
 
+    # -------------------------------------------------------------------------------- #
     def configureUI(self):
         """Performs additional configuration of GUI beyond just simple initialization, 
         especially when related to geometries""" 
         
         self.t_add1.SetValue('Type in folder name & hit Enter to add to search. Press (-) to remove selections.') 
         self.t_add2.SetValue('Type in folder name & hit Enter to add to exclusions. Press (-) to remove selections.') 
+        self.rb_finddup.SetValue(True)  # default mode 
         self.sb_status.SetStatusText( \
             "Steps: [1] Select folder(s) [2] Hit Search [3] Left mouse to select files, Right click to take action") 
 
 
+    # -------------------------------------------------------------------------------- #
     def displayUI(self):
         """Actually displays the different widgets of the UI. Has most of the grid 
         packing rules in here""" 
@@ -147,7 +160,7 @@ class MainPanel(wx.Panel):
         vsizer3r.Add(self.lbx_dirs2, flag=wx.EXPAND)
 
         # row3, left - buttons 
-        leftstuff = [self.st_extraopt, self.b_sel2, self.b_skip2] 
+        leftstuff = [self.st_extraopt, self.b_sel2, self.b_skipmatch] 
         for b in leftstuff: vsizer3l.Add(b, 0, flag=wx.EXPAND)  
 
         # row3 main 
@@ -170,16 +183,32 @@ class MainPanel(wx.Panel):
         self.Fit()
         
 
-    def set_find_mode(self):
-        self.comp_modevar.set(FIND_MODE) 
-        self.b_search.configure(text='Search', command=self.search)
-    
 
-    def set_comp_mode(self):
-        # self.comp_modevar.set(FIND_MODE) # self.comp_modevar.set(COMP_MODE) 
-        # return
-        pass
+    # -------------------------------------------------------------------------------- #
+    def bindUI(self):               
+        """Binds any mouse functions to the widgets in this section"""
 
+        self.t_add1.Bind(wx.EVT_TEXT_ENTER, self.onAdd1)
+        self.b_del1.Bind(wx.EVT_BUTTON, self.onDel1)
+        self.b_sel1.Bind(wx.EVT_BUTTON, self.onSeldir1)
+
+        self.t_add2.Bind(wx.EVT_TEXT_ENTER, self.onAdd2)
+        self.b_del2.Bind(wx.EVT_BUTTON, self.onDel2)
+        self.b_sel2.Bind(wx.EVT_BUTTON, self.onSeldir2)
+
+        self.b_search.Bind(wx.EVT_BUTTON, self.onSearch)  
+        self.b_skipmatch.Bind(wx.EVT_BUTTON, self.onSkipMatch)  
+        self.b_clearfolders.Bind(wx.EVT_BUTTON, self.onClearFolders)
+        self.b_clearconsole.Bind(wx.EVT_BUTTON, self.onClearConsole) 
+
+        # relegate this to top level (ie, frame)
+        # ----------------------------------------
+        #self.b_quit.Bind(wx.EVT_BUTTON, self.quitApp)  
+        #self.Bind(wx.EVT_CLOSE, self.quitApp)  
+
+
+        ## self.clbx_results.Bind(wx.EVT_LISTBOX, self.checkSelected)
+        ## self.clbx_results.Bind(wx.EVT_CHECKLISTBOX, self.processCheckedResults)
 
 
 ##    def createPopupMenu(self):               
@@ -195,75 +224,28 @@ class MainPanel(wx.Panel):
 ##        return pmenu
 
 
-
-    def bindUI(self):               
-        """Binds any mouse functions to the widgets in this section"""
-
-        self.t_add1.Bind(wx.EVT_TEXT_ENTER, self.add1)
-        self.b_del1.Bind(wx.EVT_BUTTON, self.del1)
-
-        # left buttons
-        self.b_sel1.Bind(wx.EVT_BUTTON, self.seldir1)
-        self.b_search.Bind(wx.EVT_BUTTON, self.search)  
-        self.b_clearfolders.Bind(wx.EVT_BUTTON, self.clearFolders)
-        self.b_clearconsole.Bind(wx.EVT_BUTTON, self.clearResults) 
-        self.b_quit.Bind(wx.EVT_BUTTON, self.quitApp)  
-
-        ## self.clbx_results.Bind(wx.EVT_LISTBOX, self.checkSelected)
-        ## self.clbx_results.Bind(wx.EVT_CHECKLISTBOX, self.processCheckedResults)
-
-        ## self.Bind(wx.EVT_CONTEXT_MENU, self.showPopup)
-        self.Bind(wx.EVT_CLOSE, self.quitApp)
-        
+    def set_stdview(self, panel): 
+        '''Sets the std view via a panel''' 
+        self.stdpanel = panel
 
 
-## >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-## TEMP - DUMMY FUNCTIONS TO GET GOING...    
-## <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    def add1(self, e=None):
-        pass
-
-    def del1(self, e=None):
-        pass
-
-    def seldir1(self, e=None):
-        pass
-
-    def search(self, e=None):
-        pass
-
-    def clearFolders(self, e=None):
-        pass
-
-    def clearResults(self, e=None):
-        pass
-
-    def quitApp(self, e=None):
-        pass
-
-    def checkSelected(self, e=None):
-        pass
-
-    def processCheckedResults(self, e=None):
-        pass
-
-    def processCheckedResults(self, e=None):
-        pass
-
-    def showPopup(self, event):
-        pass
+    def set_cmpview(self, panel): 
+        '''Sets the std view via a panel''' 
+        self.cmppanel = panel
 
 
-    # -------------------------- Widget Actions  ------------------------- 
+
+    # -------------------------- Widget Actions  ------------------------- #
     # Related Methods but not directly connected to any event 
-    # -------------------------------------------------------------------- 
+    # -------------------------------------------------------------------- #
 
-    def cprint (self, s): 
+    def cprint (self, s='\n'): 
         """Abstracts out console printing whether TextCtrl or otherwise"""
         self.t_console.AppendText(s)
 
 
 
+    # -------------------------------------------------------------------------------- #
     def updateStatus(self, del_flist):
         """Update search results after files have been deleted"""
            
@@ -284,9 +266,9 @@ class MainPanel(wx.Panel):
             self.clbx_results.Append( self.srch_results_list[i] ) 
 
 
-    # -------------------------- Widget Actions  -------------------------- 
+    # -------------------------- Widget Actions  -------------------------- #
     # Direct Bindings (callbacks) - respond to events 
-    # -------------------------------------------------------------------- 
+    # --------------------------------------------------------------------- #
 
 ##     def checkSelected(self, e=None):
 ##         """Checks the corresponding boxes for selected results"""
@@ -315,122 +297,234 @@ class MainPanel(wx.Panel):
 ##     
 ## 
 
-##     # ------------------------ Related to 5 buttons on left ------------------------ 
-## 
-##     def search(self, e=None):
-##         """Function that invokes the routine for duplicate file finding"""
-## 
-##         self.cprint("** 1. Creating file/directory structure **\n")
-## 
-##         dup_files = Dup.DuplicateFinder() 
-## 
-##         for p in self.ignorelist:       #TODO. Check if used
-##            self.cprint ("p => " + p + "\n") 
-##            if os.path.exists(p):
-##                self.cprint("   Ignoring everthing under: " + os.path.abspath(p) + "\n")
-##                dup_files.add2ignore(os.path.abspath(p))
-##         
-##         self.cprint( 'INFO. matched dirs (relative) to exclude:' )
-##         self.cprint( repr(dup_files._ignorematching) +'\n' )
-## 
-##         # go by what is in dirlist NOT what is displayed    # TODO
-##         for p in self.dirlist:
-##            dup_files.update(p) 
-##            self.cprint("   Building structure for: " + p) 
-## 
-##         self.cprint("\n")
-##         self.cprint("-- Directory structure creation complete --\n")
-##         self.cprint("** 2. Finding duplicates **\n")
-##    
-##         dup_table = dup_files.get_duplicates()
-##         self.srch_results_list, self.srch_sizes_list =  dup_files.dump_duplicates_list()
-## 
-##         for t in self.srch_results_list:
-##             self.clbx_results.Append(t)
-## 
-##         self.cprint("-- Duplicate listing complete --\n")
-##         return
-## 
-## 
-##    def quitApp(self, e=None):
-##           """Function that invokes the routine for duplicate file finding"""
-##           self.Destroy() 
-##           self.Close() 
-## 
-## 
-##     def clearFolders(self, e=None):
-##         """Clears all directory lists"""
-##         self.dirlist = []
-##         self.ignorelist = []
-##         self.complist = []
-##         self.lbx_dirs1.Set([])
-## 
-## 
-##     def clearResults(self, e=None):
-##         """Clears the serch results & console in the window"""
-##         self.t_console.SetValue('')
-##         self.clbx_results.Set([])
-##         self.srch_results_list = [] 
-##         self.srch_sizes_list = [] 
-## 
-## 
-## 
-##     def add1(self, e=None):
-##         """Adds directory entry into list of search dirs""" 
-## 
-##         dpath = self.t_add1.GetValue().strip('\n').strip()
-## 
-##         if dpath == '': 
-##             return
-##         elif dpath in self.dirlist:
-##             self.cprint ("Warning. Dir already added to list. %s will not be added" % (dpath))
-##         elif os.path.exists(dpath):
-##             self.dirlist.append(dpath)  # superfluous?
-##             self.lbx_dirs1.AppendAndEnsureVisible(dpath)
-##         else:
-##             self.cprint("Warning. Dir path does not exist. %s will not be added" % (dpath))    
-##  
-##  
-##     def del1(self, e=None):
-##         """Removes directory entry from list of search dirs""" 
-## 
-##         if len(self.dirlist) < 1:
-##             return 
-## 
-##         idxlist = list(self.lbx_dirs1.GetSelections())
-##         idxlist.sort()  
-## 
-##         tmplist = []    # copy over clean versions here 
-##         for i in range(len(self.dirlist)):
-##             if i in idxlist: 
-##                 idxlist.remove(i) 
-##             else:    
-##                 tmplist.append(self.dirlist[i])
-## 
-##         self.dirlist = tmplist
-##         self.lbx_dirs1.Set(tmplist)
-##  
-##  
-## 
-##     def seldir1(self, e=None):
-##        """Selects dir from ask open folder dialog box""" 
-##        
-##        ddsel = wx.DirDialog(self, "Choose a directory", style=wx.DD_DIR_MUST_EXIST) 
-##        if ddsel.ShowModal() != wx.ID_OK: 
-##            ddsel.Destroy()
-##            return 
-## 
-##        dpath = ddsel.GetPath() 
-##        if dpath in self.dirlist:
-##            self.cprint("Warning. Dir already added to list. %s will not be added" % (dpath))
-##            return
-## 
-##        self.dirlist.append(dpath)
-##        self.lbx_dirs1.AppendAndEnsureVisible(dpath)
-##        # also populate entry box with same
-##        self.t_add1.SetValue(dpath)
-##        self.t_add1.SetSelection(-1,-1) 
-## 
+## >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+## TEMP - DUMMY FUNCTIONS TO GET GOING...    
+## <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    def checkSelected(self, e=None):
+        pass
+
+    def processCheckedResults(self, e=None):
+        pass
+
+    def processCheckedResults(self, e=None):
+        pass
+
+    def showPopup(self, event):
+        pass
+
+
+
+    # -------------------------------------------------------------------------------- #
+    # ------------------------ Related to the buttons on left ------------------------ #
+    # -------------------------------------------------------------------------------- #
+
+    def onSearch(self, e=None):
+        """Function that invokes the routine for duplicate file finding"""
+
+
+        compare_mode = self.rb_compare.GetValue() 
+        
+        if compare_mode:
+            self.cprint('** Compare View Mode **\n') 
+        else:
+            self.cprint('** Standard View Mode **\n') 
+
+
+        self.cprint('** 1. Creating file/directory structure **\n')
+
+        dup_obj = Dup.DuplicateFinder() 
+
+        for p in self.ignorelist:       #TODO. Check if used
+           ## self.cprint ("p => " + p + "\n") 
+           ## if os.path.exists(p):    # should always exist...
+           self.cprint('   Ignoring everthing under: {}\n'.format(p)) #  os.path.abspath(p) + "\n")
+           dup_obj.add2ignore(os.path.abspath(p))
+       
+
+        self.cprint()
+        self.cprint( 'INFO. matched dirs (relative) to exclude:' )
+        self.cprint( repr(dup_obj._ignorematching) +'\n' )
+
+        # go by what is in dirlist NOT what is displayed    # TODO
+        for p in self.dirlist:
+           dup_obj.update(p) 
+           self.cprint('   Building structure for: {}'.format(p)) 
+
+        self.cprint()
+        self.cprint("-- Directory structure creation complete --\n")
+        self.cprint("** 2. Finding duplicates **\n")
+   
+        dup_table = dup_obj.get_duplicates()
+        self.srch_results_list, self.srch_sizes_list =  dup_obj.dump_duplicates_list()
+
+
+        self.cprint("-- Duplicate listing complete --\n")
+
+        if compare_mode:
+            self.displayCmpview()
+            self.cprint('** Check "Compare View" tab for results **\n') 
+        else:       
+            self.displayStdview()
+            ## for t in self.srch_results_list: self.cprint(t+'\n')  # for DEBUG
+            self.cprint('** Check "Standard View" tab for results **\n') 
+
+        self.cprint()
+
+        ##print 'DUP TABLE (DEBUG)' 
+        ##for k,v in dup_table.items(): print k, '->', v
+
+
+
+    # -------------------------------------------------------------------------------- #
+    def displayCmpview(self):
+        """Displays the cmpview tab"""
+        pass
+
+
+    # -------------------------------------------------------------------------------- #
+    def displayStdview(self):
+        """Displays the stdview tab"""
+        for t in self.srch_results_list:
+            self.stdpanel.clbx_results.Append(t)  
+
+
+
+    # -------------------------------------------------------------------------------- #
+    def onSkipMatch(self, e=None):
+        """Enters the matched dirs/filenames to skip"""
+        pass
+
+
+
+    # -------------------------------------------------------------------------------- #
+    def onClearFolders(self, e=None):
+        """Clears all directory lists"""
+        self.dirlist = []
+        self.ignorelist = []
+        self.t_add1.Clear()
+        self.t_add2.Clear()
+        self.lbx_dirs1.Set([])
+        self.lbx_dirs2.Clear() 
+
+
+
+    # -------------------------------------------------------------------------------- #
+    def onClearConsole(self, e=None):
+         """Clears the console in the window"""
+         self.t_console.SetValue('')
+         ## self.clbx_results.Set([])    TODO
+         # self.srch_results_list = []     TODO
+         # self.srch_sizes_list = [] 
+
+
+    # -------------------------------------------------------------------------------- #
+    def onAdd1(self, e=None):
+        """Adds directory entry into list of search dirs""" 
+
+        dpath = self.t_add1.GetValue().strip('\n').strip()
+
+        if dpath == '': 
+            return
+        elif dpath in self.dirlist:
+            self.cprint ("Warning. Dir already added to search list. %s will not be added" % (dpath))
+        elif os.path.exists(dpath):
+            self.dirlist.append(dpath)  # superfluous?
+            self.lbx_dirs1.AppendAndEnsureVisible(dpath)
+        else:
+            self.cprint("Warning. Dir path does not exist. %s will not be added" % (dpath))    
+
+    # -------------------------------------------------------------------------------- #
+    def onAdd2(self, e=None):
+        """Adds directory entry into list of exclude dirs""" 
+
+        dpath = self.t_add2.GetValue().strip('\n').strip()
+
+        if dpath == '': 
+            return
+        elif dpath in self.ignorelist:
+            self.cprint ("Warning. Dir already added to exclude list. %s will not be added" % (dpath))
+        elif os.path.exists(dpath):
+            self.ignorelist.append(dpath)  # superfluous?
+            self.lbx_dirs2.AppendAndEnsureVisible(dpath)
+        else:
+            self.cprint("Warning. Dir path does not exist. %s will not be added" % (dpath))    
+
+
+ 
+    def onDel1(self, e=None):
+        """Removes directory entry from list of search dirs""" 
+
+        if len(self.dirlist) < 1:
+            return 
+
+        idxlist = list(self.lbx_dirs1.GetSelections())
+        idxremain = filter( lambda x: x not in idxlist, range(len(self.dirlist)) ) 
+        tmplist = [self.dirlist[i] for i in idxremain]
+        self.dirlist = tmplist
+        self.lbx_dirs1.Set(tmplist)
+
+
+ 
+    # -------------------------------------------------------------------------------- #
+    def onDel2(self, e=None):
+        """Removes directory entry from list of exclude dirs""" 
+
+        if len(self.ignorelist) < 1:
+            return 
+
+        idxlist = list(self.lbx_dirs2.GetSelections())
+        idxremain = filter( lambda x: x not in idxlist, range(len(self.ignorelist)) ) 
+        tmplist = [self.ignorelist[i] for i in idxremain]
+        self.ignorelist = tmplist
+        self.lbx_dirs2.Set(tmplist)
+
+
+ 
+
+    # -------------------------------------------------------------------------------- #
+    def onSeldir1(self, e=None):
+       """Selects dir from ask open folder dialog box""" 
+       
+       ddsel = wx.DirDialog(self, "Choose a directory", style=wx.DD_DEFAULT_STYLE|wx.DD_DIR_MUST_EXIST) 
+       if ddsel.ShowModal() != wx.ID_OK: 
+           ddsel.Destroy()
+           return 
+
+       dpath = ddsel.GetPath() 
+       if dpath in self.dirlist:
+           self.cprint("Warning. Dir already added to list. %s will not be added" % (dpath))
+           return
+
+       self.dirlist.append(dpath)
+       self.lbx_dirs1.AppendAndEnsureVisible(dpath)
+       # also populate entry box with same
+       self.t_add1.SetValue(dpath)
+       self.t_add1.SetSelection(-1,-1) 
+
+
+
+    # -------------------------------------------------------------------------------- #
+    def onSeldir2(self, e=None):
+       """Selects dir from ask open folder dialog box""" 
+       
+       ddsel = wx.DirDialog(self, "Choose a directory", style=wx.DD_DEFAULT_STYLE|wx.DD_DIR_MUST_EXIST) 
+       if ddsel.ShowModal() != wx.ID_OK: 
+           ddsel.Destroy()
+           return 
+
+       dpath = ddsel.GetPath() 
+       if dpath in self.ignorelist:
+           self.cprint("Warning. Dir already added to ignore list. %s will not be added" % (dpath))
+           return
+ 
+       self.ignorelist.append(dpath)
+       self.lbx_dirs2.AppendAndEnsureVisible(dpath)
+       # also populate entry box with same
+       self.t_add2.SetValue(dpath)
+       self.t_add2.SetSelection(-1,-1) 
+
+
 
     # -------------------------- Widget Actions  -------------------------- 
     # Right-click/Popup Menu options
@@ -506,48 +600,6 @@ class MainPanel(wx.Panel):
 ## 
 ## 
 
-
-
-##  # TODO. ---------------------------------------------------------------------------
-##  # TODO. Unused right now...
-##  # TODO. ---------------------------------------------------------------------------
-##    def compare(self):
-##        """Function that invokes the routine for comparing directories for duplicates""" 
-##
-##        wprint(self.srch_log, "** 1. Creating file/directory structure **")
-##        dup_files = Dup.DuplicateFinder() 
-##
-##        for p in self.dirlist:
-##           dup_files.update(p) 
-##           wprint(self.srch_log, "   Building structure for: " + p) 
-##
-##        wprint(self.srch_log,  "-- Directory structure creation complete --\n")
-##        wprint(self.srch_log,  "** 2. Finding duplicates **\n")
-##   
-##        dup_table = dup_files.get_duplicates()
-##
-##        tmp_list, tmp_sizes = dup_files.dump_duplicates_list() 
-##        wprint(self.srch_log, '\n'.join(tmp_list))
-##
-##        if self.comp_modevar.get() == FIND_MODE:
-##            return
-##        tmp = self.comp_log.get() + 'Comparing stuff'
-##        self.comp_log.set(tmp) 
-
-
-##     def ignoreDir (self):
-##         """Ignores selected file from directory listbox"""
-##         print "hello IGNORE !!!" 
-##         idx = [int(i) for i in self.lbx_dirs1.curselection()][0]
-##        
-##         dname = self.dirlist[idx] 
-##         if dname not in self.ignorelist:
-##             self.ignorelist.append(dname)
-##             print "self.ignorelist = ", self.ignorelist 
-## 
-##         self.lbx_dirs1.delete(idx)
-##         self.lbx_dirs1.insert(idx, dname + ' [I]') 
-## 
 
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
