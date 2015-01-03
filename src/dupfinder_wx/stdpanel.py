@@ -1,21 +1,27 @@
 #!/usr/bin/env ipython
 
+'''The StdPanel class basically displays the search results, and has additional 
+functionality to delete duplicates. It takes in data from the main panel as a 
+data structure of duplicate files to display and breaks it down appropriately.
+'''
+
 
 # hierarchy
 # find_duplicates_wxtop
-# - _wxstdpanel 
-# - _wxcmppanel 
+# - mainpanel 
+# - stdpanel 
+# - cmppanel 
 
 
 import os
 import os.path 
-import DuplicateFinder as Dup
 import wx
 
-_DEFWIDTH_ = 600
+_DEFWIDTH_ = 500
+_BUTWIDTH_ = 130 
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-# StdPanel class definition
+# CmpPanel class definition
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
 class StdPanel(wx.Panel):
@@ -43,46 +49,30 @@ class StdPanel(wx.Panel):
         geometry configuration, or other detailed config beyond basic 
         initialization and variable or commmand binding"""
 
-        self.t_add1 = wx.TextCtrl(self, style=wx.TE_PROCESS_ENTER, size=(_DEFWIDTH_-100,-1)) 
-        self.b_add1 = wx.Button(self, label='+')
-        self.b_del1 = wx.Button(self, label='-')
-
-        self.b_sel1 = wx.Button(self, label='Select Folder(s)')
-        self.b_search = wx.Button(self, label='Search')
-        self.b_clearfolders = wx.Button(self, label='Clear Folders')
         self.b_clearresults = wx.Button(self, label='Clear Results')
+        self.b_delsel = wx.Button(self, label='Delete Selections')
         self.b_quit = wx.Button(self, label='Quit')
 
-        self.st_dirs1 = wx.StaticText(self, label='Folders to search', size=(_DEFWIDTH_-100,-1)) 
-        self.lbx_dirs1 = wx.ListBox(self, choices=[], style=wx.HSCROLL|wx.LB_NEEDED_SB|wx.LB_EXTENDED)
+        self.st_summary = wx.StaticText(self, label='Summary') 
+        self.t_summary = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.VSCROLL|wx.TE_READONLY, 
+                size=(_DEFWIDTH_,100))
+
         self.st_results = wx.StaticText(self, label='Search results') 
         self.clbx_results = wx.CheckListBox(self, style=wx.HSCROLL|wx.LB_NEEDED_SB|wx.LB_EXTENDED, 
             choices=[], size=(_DEFWIDTH_,300))
-        self.st_console = wx.StaticText(self, label='Console') 
-        self.t_console = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.VSCROLL|wx.TE_READONLY, 
-                size=(_DEFWIDTH_,100))
+
         self.sb_status = wx.StatusBar(self)
 
 ##      self.popupmenu = self.createPopupMenu()
 
-        #TODO. for future 
-        self.t_add2 = wx.TextCtrl(self) 
-        self.b_add2 = wx.Button(self, label='+') 
-        self.b_sel2 = wx.Button(self, label='Select Folder (Compare)')   
-        self.st_dirs2 = wx.StaticText(self, label='Folders to compare') 
-
-
-        futures = [self.b_add2, self.t_add2, self.b_sel2, self.st_dirs2] 
-        for f in futures: f.Hide()
 
 
     def configureUI(self):
         """Performs additional configuration of GUI beyond just simple initialization, 
         especially when related to geometries""" 
         
-        self.t_add1.SetValue('You may type in folder name directly to add (+)') 
-        self.sb_status.SetStatusText( \
-            "Steps: [1] Select folder(s) [2] Hit Search [3] Left mouse to select files, Right click to take action") 
+        self.sb_status.SetStatusText('Right click for more options') 
+
 
 
     def displayUI(self):
@@ -90,25 +80,19 @@ class StdPanel(wx.Panel):
         packing rules in here""" 
 
         mainsizer = wx.BoxSizer(wx.VERTICAL)     # break up into rows
-        hsizer2   = wx.BoxSizer(wx.HORIZONTAL)     # for row 2
+        hsizer2   = wx.BoxSizer(wx.HORIZONTAL)   # for row 2
         vsizer2l  = wx.BoxSizer(wx.VERTICAL)     # for row 2.L
         vsizer2r  = wx.BoxSizer(wx.VERTICAL)     # for row 2.R
-        hsizer2r1 = wx.BoxSizer(wx.HORIZONTAL) # for row 2.R.1
-        hsizer2r2 = wx.BoxSizer(wx.HORIZONTAL) # for row 2.R.2
 
-        # row2, right - textctrl & buttons 
-        hsizer2r1.Add(self.t_add1, 1, flag=wx.EXPAND)
-        hsizer2r1.Add(self.b_add1)
-        hsizer2r2.Add(self.st_dirs1, 1, flag=wx.EXPAND)
-        hsizer2r2.Add(self.b_del1)
-
-        vsizer2r.Add(hsizer2r1, flag=wx.EXPAND)
-        vsizer2r.Add(hsizer2r2, flag=wx.EXPAND)
-        vsizer2r.Add(self.lbx_dirs1, flag=wx.EXPAND)
+        # row2, right side 
+        vsizer2r.Add(self.st_summary, flag=wx.EXPAND)
+        vsizer2r.Add(self.t_summary, flag=wx.EXPAND)
 
         # row2, left - buttons 
-        buttons = [self.b_sel1, self.b_search, self.b_clearfolders, self.b_clearresults, self.b_quit] 
-        for b in buttons: vsizer2l.Add(b, 1, flag=wx.EXPAND)  
+        dummy_label = wx.StaticText(self, label='')
+        vsizer2l.Add(dummy_label)
+        buttons = [self.b_clearresults, self.b_delsel, self.b_quit] 
+        for b in buttons: vsizer2l.Add(b, 0, flag=wx.EXPAND)  
 
         # vsizer2r.RecalcSizes()
 
@@ -116,41 +100,15 @@ class StdPanel(wx.Panel):
         hsizer2.Add(vsizer2l, 0, flag=wx.EXPAND)
         hsizer2.Add(vsizer2r, 1, flag=wx.EXPAND)
 
-
         # now add all the rows/sizers
         mainsizer.Add(hsizer2, 0, flag=wx.EXPAND) 
         mainsizer.AddSpacer(5)
         mainsizer.Add(self.st_results, 0)
         mainsizer.Add(self.clbx_results, 1, flag=wx.EXPAND)
-        mainsizer.Add(self.st_console, 0)
-        mainsizer.Add(self.t_console, flag=wx.EXPAND)
         mainsizer.Add(self.sb_status, 0, flag=wx.EXPAND)
         self.SetSizer(mainsizer)
-
         self.Fit()
-        
-
-    def set_find_mode(self):
-        self.comp_modevar.set(FIND_MODE) 
-        self.b_search.configure(text='Search', command=self.search)
-    
-        # <><>-- IGNORE ALL FOR NOW --<><>
-        # forget/remove the other stuff
-        ##  self.b_add2.grid_forget()
-        ##  self.e_add2.grid_forget()
-        ##  self.b_sel2.grid_forget() 
-        ##  self.lbfm2.grid_forget()
-        ##  self.label_dirs2.grid_forget()
-        ##  self.lbfm_console2.grid_forget()
-        ##  self.lbx_console2.grid_forget()
-
-
-
-    def set_comp_mode(self):
-        # self.comp_modevar.set(FIND_MODE) # self.comp_modevar.set(COMP_MODE) 
-        # return
-        pass
-
+       
 
 
 ##    def createPopupMenu(self):               
@@ -170,26 +128,24 @@ class StdPanel(wx.Panel):
     def bindUI(self):               
         """Binds any mouse functions to the widgets in this section"""
 
-        self.t_add1.Bind(wx.EVT_TEXT_ENTER, self.add1)
-        self.b_add1.Bind(wx.EVT_BUTTON, self.add1)
-        self.b_del1.Bind(wx.EVT_BUTTON, self.del1)
+##        self.t_add1.Bind(wx.EVT_TEXT_ENTER, self.add1)
+##        self.b_add1.Bind(wx.EVT_BUTTON, self.add1)
+##        self.b_del1.Bind(wx.EVT_BUTTON, self.del1)
 
         # left buttons
-        self.b_sel1.Bind(wx.EVT_BUTTON, self.seldir1)
-        self.b_search.Bind(wx.EVT_BUTTON, self.search)  
-        self.b_clearfolders.Bind(wx.EVT_BUTTON, self.clearFolders)
-        self.b_clearresults.Bind(wx.EVT_BUTTON, self.clearResults) 
-        self.b_quit.Bind(wx.EVT_BUTTON, self.quitApp)  
+##        self.b_sel1.Bind(wx.EVT_BUTTON, self.seldir1)
+##        self.b_search.Bind(wx.EVT_BUTTON, self.search)  
+##        self.b_clearfolders.Bind(wx.EVT_BUTTON, self.clearFolders)
+##        self.b_clearresults.Bind(wx.EVT_BUTTON, self.clearResults) 
+##        self.b_quit.Bind(wx.EVT_BUTTON, self.quitApp)  
 
-        self.clbx_results.Bind(wx.EVT_LISTBOX, self.checkSelected)
-        self.clbx_results.Bind(wx.EVT_CHECKLISTBOX, self.processCheckedResults)
+##  TODO. Need these 
+##        self.clbx_results.Bind(wx.EVT_LISTBOX, self.checkSelected)
+##        self.clbx_results.Bind(wx.EVT_CHECKLISTBOX, self.processCheckedResults)
 
         self.Bind(wx.EVT_CONTEXT_MENU, self.showPopup)
         self.Bind(wx.EVT_CLOSE, self.quitApp)
         
-        # TODO. for future
-        #self.b_add2.Bind(wx.EVT_BUTTON, self.add2)  
-        #self.b_sel2.Bind(wx.EVT_BUTTON, self.seldir2)   
 
 
 ## >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

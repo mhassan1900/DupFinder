@@ -11,8 +11,9 @@ import os
 import os.path 
 import DuplicateFinder as Dup
 import wx
-from find_duplicates_wxstdpanel import StdPanel  
-from find_duplicates_wxmainpanel import MainPanel  
+from dupfinder_wx.stdpanel import StdPanel  
+from dupfinder_wx.cmppanel import CmpPanel
+from dupfinder_wx.mainpanel import MainPanel  
 
 
 _DEFWIDTH_ = 600
@@ -36,7 +37,7 @@ class MyFrame(wx.Frame):
         notebook = wx.Notebook(toppanel)
         mainpanel = MainPanel(notebook)
         stdpanel = StdPanel(notebook)
-        cmppanel = StdPanel(notebook)
+        cmppanel = CmpPanel(notebook)
 
         #  configureUI() -->
         notebook.AddPage(mainpanel, "Main")
