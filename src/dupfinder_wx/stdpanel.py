@@ -373,7 +373,7 @@ class StdPanel(wx.Panel):
                 msg = 'Could not delete file {} for some reason!'.format(f)
                 continue
 
-        self.updateStatus(final_selection)
+        self.updateStatus(final_selection)      #TODO..
 
 
 
