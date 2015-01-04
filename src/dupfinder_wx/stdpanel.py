@@ -43,14 +43,14 @@ class StdPanel(wx.Panel):
         wx.Panel.__init__(self, parent=parent)
 
         # variables need for non-GUI execution
+
+        # These 3 are passed in from mainpanel & then maintained locally 
         self.dirlist = []               # list of directories to search
         self.ignorelist = []            # list of directories to ignore
-
-        ##self.srch_results_list = []   # list of names in search results (includes comments)
-        ##self.srch_sizes_list = []     # list of sizes from search results
+        self.dup_table = {}             # Raw table { 'md5sum1' : [sz, file1, file2, file3, ...], ... }
+        
+        # This list is generated & maintained purely in this panel 
         self.filesel_list = []          # list of (checked) selections from search results
-
-        self.dup_table = {}             # "  Raw table { 'md5sum1' : [sz, file1, file2, file3, ...], ... }"  
 
         self.initUI()                   # create all the widgets
         self.configureUI()              # configures widgets additionally 
@@ -84,6 +84,7 @@ class StdPanel(wx.Panel):
 
 
 
+    # -------------------------------------------------------------------- #
     def configureUI(self):
         """Performs additional configuration of GUI beyond just simple initialization, 
         especially when related to geometries""" 
@@ -92,6 +93,7 @@ class StdPanel(wx.Panel):
 
 
 
+    # -------------------------------------------------------------------- #
     def displayUI(self):
         """Actually displays the different widgets of the UI. Has most of the grid 
         packing rules in here""" 
@@ -125,20 +127,13 @@ class StdPanel(wx.Panel):
         mainsizer.Add(self.sb_status, 0, flag=wx.EXPAND)
         self.SetSizer(mainsizer)
         self.Fit()
-       
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    def openFolder(self, e=None):
-       pass
 
-    def openFile(self, e=None):
-        pass
 
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
+    # -------------------------------------------------------------------- #
     def createPopupMenu(self):               
        item_names = ['Delete', 'Clear Selections', 'Open Enclosing Folder', 'Open File'] 
-       item_funcs = [self.deleteFiles, self.clearSelections, self.openFolder, self.openFile] 
+       item_funcs = [self.onDeleteSelected, self.clearSelections, self.openFolder, self.openFile] 
 
        pmenu = wx.Menu()
 
@@ -150,38 +145,21 @@ class StdPanel(wx.Panel):
 
 
 
+    # -------------------------------------------------------------------- #
     def bindUI(self):               
         """Binds any mouse functions to the widgets in this section"""
 
         # left buttons
-        self.b_clearresults.Bind(wx.EVT_BUTTON, self.clearResults) 
+        self.b_clearresults.Bind(wx.EVT_BUTTON, self.onClearResults) 
+        self.b_delsel.Bind(wx.EVT_BUTTON, self.onDeleteSelected)
 
-##  TODO. Need these 
-        self.clbx_results.Bind(wx.EVT_LISTBOX, self.checkSelected)
+        # selections & checkboxes 
+        self.clbx_results.Bind(wx.EVT_LISTBOX, self.processSelected)
         self.clbx_results.Bind(wx.EVT_CHECKLISTBOX, self.processChecked)
 
+        # popup menus
         self.Bind(wx.EVT_CONTEXT_MENU, self.showPopup)
         
-
-
-## >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-## TEMP - DUMMY FUNCTIONS TO GET GOING...    
-## <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-#   def clearResults(self, e=None):
-#       pass
-
-#    def checkSelected(self, e=None):
-#        pass
-
-    def processCheckedResults(self, e=None):
-        pass
-
-#   def processCheckedResults(self, e=None):
-#       pass
-
-#   def showPopup(self, event):
-#       pass
 
 
     # -------------------------- Widget Actions  ------------------------- 
@@ -192,29 +170,25 @@ class StdPanel(wx.Panel):
 
     def updateStatus(self, del_flist):
         """Update search results after files have been deleted"""
-          
+      
 
-        return
+        del_set = set(del_flist)
 
-        #self.filesel_list = []    # TODO. uncheck everything
-        #self.l_status.configure(text='Clear console and hit Search again')
+        for k, vlist in self.dup_table.items():
+            vset = set(vlist)
+            for v in del_set.intersection(vset):
+                ## print 'Removing ', v
+                vlist.remove(v)
+            if len(vlist) < 3: 
+                del self.dup_table[k]
+            else:
+                self.dup_table[k] = vlist
 
-        self.filesel_list = []
-        self.clbx_results.Set([])
-
-        # update listing contents in place & then the listbox in search results
-        for i in range(len(self.srch_results_list)): 
-            f,s = self.srch_results_list[i], self.srch_sizes_list[i]
-
-            if f.strip().startswith('##'):  
-                self.srch_results_list[i] = f + '(OUTDATED)' 
-            elif f.strip() in del_flist: 
-                self.srch_results_list[i] = '##' + f[2:] + ' (DELETED)' 
-            self.clbx_results.Append( self.srch_results_list[i] ) 
+        self.displayDuplicates()
 
 
 
-
+    # -------------------------------------------------------------------- #
     def displayDuplicates(self): 
         """Displays duplicates of files based on instance hash 'dup_table'. dup_table
         must be provided by external panel for this panel to display""" 
@@ -229,15 +203,15 @@ class StdPanel(wx.Panel):
         #    for v in vlist:
         #        tree.AppendItem(child_id, v)
 
-        self.clearResults()
+        self.onClearResults()
 
         tot_excess = 0
 
         ## sorted_sizes = sorted(vlist[0] for vlist in self.dup_table. TODO. easiest w/pandas
 
         for k,vlist in self.dup_table.items():
-            sz_bytes = vlist.pop(0)
-            sz_excess = sz_bytes*(len(vlist)-1) 
+            sz_bytes = vlist[0]     # do NOT pop(0) -- modifies the hash table
+            sz_excess = sz_bytes*(len(vlist)-2) 
             tot_excess += sz_excess 
 
             sz_f, sz_q = get_qual(sz_bytes) # size in KB, MB...
@@ -247,11 +221,11 @@ class StdPanel(wx.Panel):
             sz_q = sz_q[0] if sz_q != '' else sz_q
             sze_q = sze_q[0] if sze_q != '' else sze_q
 
-            sz_bytes_str = '## {} {}B x {}'.format(sz_f, sz_q, len(vlist)) 
+            sz_bytes_str = '## {} {}B x {}'.format(sz_f, sz_q, len(vlist)-1) 
             sz_excess_str = '({} {}B excess)'.format(sze_f, sze_q)
 
             self.clbx_results.Append('{}{:>40s}'.format(sz_bytes_str, sz_excess_str)) 
-            for v in vlist:
+            for v in vlist[1:]:
                 self.clbx_results.Append('    {}'.format(v))
 
         # update summary 
@@ -264,7 +238,7 @@ class StdPanel(wx.Panel):
     # -------------------------- Widget Actions  ------------------------- #
     # Direct Bindings (callbacks) - respond to events 
     # -------------------------------------------------------------------- #
-    def checkSelected(self, e=None):
+    def processSelected(self, e=None):
         """Checks the corresponding boxes for selected results"""
 
         isel = self.clbx_results.GetSelections()  
@@ -273,7 +247,9 @@ class StdPanel(wx.Panel):
             if sel_str.startswith('##'):
                 self.clbx_results.Deselect(i)
             else:
-                self.clbx_results.Check(i)
+                #self.clbx_results.Check(i)
+                chk_state = not self.clbx_results.IsChecked(i) # invert state on selection
+                self.clbx_results.Check(i, chk_state) 
 
         self.filesel_list = [f.strip() for f in self.clbx_results.GetCheckedStrings()]
         ## m_dlg = wx.MessageBox('you selected  ' + '\n'.join(self.filesel_list), caption="Message", style=wx.OK)
@@ -295,7 +271,7 @@ class StdPanel(wx.Panel):
     
 
     # ------------------------ Related to buttons on left ------------------------ 
-    def clearResults(self, e=None):
+    def onClearResults(self, e=None):
         """Clears the serch results & console in the window"""
         self.t_summary.Clear()
         self.clbx_results.Clear()
@@ -312,6 +288,7 @@ class StdPanel(wx.Panel):
         self.PopupMenu(self.popupmenu, pos)
 
 
+    # -------------------------------------------------------------------- #
     def clearSelections (self, e=None):
         """Unchecks the (checked) file selections in search results"""
          
@@ -321,37 +298,43 @@ class StdPanel(wx.Panel):
         self.filesel_list = []
 
 
-##     def openFile (self, e=None):
-##         """Opens selected file from console listbox"""
-##         # print "hello OPENFILE !!!" 
-##         if len(self.filesel_list) == 1:
-##             try:
-##                 fname = self.filesel_list.pop(0)
-##                 os.system('open ' + fname) # self.filesel_list.pop(0))
-##             except:
-##                 self.cprint ("Could not open file %s for some reason!" % (fname))
-##         elif len(self.filesel_list) > 1:
-##             self.cprint("Cannot open multiple files. Please select ONLY one\n")
-## 
-## 
-##     def openFolder (self, e=None):
-##         """Opens enclosing folder of selected file in console listbox"""
-##         # print "hello OPENFOLDER !!!" 
-##         if len(self.filesel_list) == 1:
-##             dname = os.path.dirname(self.filesel_list.pop(0))
-##             try:
-##                 os.system('open ' + dname) 
-##             except:
-##                 self.cprint ("Could not open file %s for some reason!" % (fname))
-##         elif len(self.filesel_list) > 1:
-##             self.cprint("Cannot open multiple enclosing folders. Please select ONLY one\n")
-## 
-## 
-    def deleteFiles (self, e=None):
-        """Deletes selected files in console listbox"""
+    # -------------------------------------------------------------------- #
+    def openFile (self, e=None):
+        """Opens selected file from console listbox"""
+        # print "hello OPENFILE !!!" 
+        if len(self.filesel_list) == 1:
+            try:
+                fname = self.filesel_list.pop(0)
+                os.system('open ' + fname) # self.filesel_list.pop(0))
+            except:
+                self.cprint ("Could not open file %s for some reason!" % (fname))
+        elif len(self.filesel_list) > 1:
+            self.cprint("Cannot open multiple files. Please select ONLY one\n")
+
+
+    # -------------------------------------------------------------------- #
+    def openFolder (self, e=None):
+        """Opens enclosing folder of selected file in console listbox"""
+        # print "hello OPENFOLDER !!!" 
+        if len(self.filesel_list) == 1:
+            dname = os.path.dirname(self.filesel_list.pop(0))
+            try:
+                os.system('open ' + dname) 
+            except:
+                self.cprint ("Could not open file %s for some reason!" % (fname))
+        elif len(self.filesel_list) > 1:
+            self.cprint("Cannot open multiple enclosing folders. Please select ONLY one\n")
+
+
+
+    # -------------------------------------------------------------------- #
+    def onDeleteSelected (self, e=None):
+        """Deletes selected files in console listbox. Has option to not delete all originally
+        selected files"""
+
         # print "hello DELETE selected files", self.filesel_list
         msg = "Do you want to delete the checked files?"
-        yesnodlg = wx.MultiChoiceDialog(None, message=msg, caption=msg, choices=self.filesel_list, 
+        yesnodlg = wx.MultiChoiceDialog(None, message=msg, caption="Delete Selected", choices=self.filesel_list, 
             style=wx.OK|wx.CANCEL|wx.RESIZE_BORDER)
         yesnodlg.SetSelections(range(len(self.filesel_list)))
 
@@ -360,20 +343,21 @@ class StdPanel(wx.Panel):
 
         final_selection = [self.filesel_list[i] for i in yesnodlg.GetSelections()]
 
-        # for testing only 
-        # for i in yesnodlg.GetSelections():
-        #     print "WILL DELETE >" + self.filesel_list[i] + "<"
-        # return
+        deleted_files = final_selection[:] # get copy  
 
         for f in final_selection:
             try:
                 os.unlink(f)
             except:
-                m_dlg = wx.MessageBox(msg, caption="WARNING", style=wx.OK)
                 msg = 'Could not delete file {} for some reason!'.format(f)
+                m_dlg = wx.MessageBox(msg, caption="WARNING", style=wx.OK)
+                deleted_files.remove(f)
                 continue
 
-        self.updateStatus(final_selection)      #TODO..
+        yesnodlg.Destroy()
+
+        self.filesel_list = []      # reset all selections
+        self.updateStatus(deleted_files)      
 
 
 

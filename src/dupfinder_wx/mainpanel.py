@@ -80,15 +80,10 @@ class MainPanel(wx.Panel):
         self.b_sel2 = wx.Button(self, label='Select Exclusion(s)', size=(_BUTWIDTH_,-1))
         self.b_skipmatch = wx.Button(self, label='Skip Matches')
 
-        ## self.st_results = wx.StaticText(self, label='Search results') 
-        ## self.clbx_results = wx.CheckListBox(self, style=wx.HSCROLL|wx.LB_NEEDED_SB|wx.LB_EXTENDED, 
-        ##     choices=[], size=(_DEFWIDTH_,300))
         self.st_console = wx.StaticText(self, label='Console') 
         self.t_console = wx.TextCtrl(self, style=wx.TE_MULTILINE|wx.VSCROLL|wx.TE_READONLY, 
                 size=(_DEFWIDTH_,100))
         self.sb_status = wx.StatusBar(self)
-
-##      self.popupmenu = self.createPopupMenu()
 
 
 
@@ -99,6 +94,8 @@ class MainPanel(wx.Panel):
         
         self.t_add1.SetValue('Type in folder name & hit Enter to add to search. Press (-) to remove selections.') 
         self.t_add2.SetValue('Type in folder name & hit Enter to add to exclusions. Press (-) to remove selections.') 
+        self.t_add1.SelectAll()
+        self.t_add2.SelectAll()
         self.rb_finddup.SetValue(True)  # default mode 
         self.sb_status.SetStatusText( \
             "Steps: [1] Select folder(s) [2] Hit Search [3] Left mouse to select files, Right click to take action") 
@@ -207,22 +204,11 @@ class MainPanel(wx.Panel):
         #self.Bind(wx.EVT_CLOSE, self.quitApp)  
 
 
-        ## self.clbx_results.Bind(wx.EVT_LISTBOX, self.checkSelected)
-        ## self.clbx_results.Bind(wx.EVT_CHECKLISTBOX, self.processCheckedResults)
 
 
-##    def createPopupMenu(self):               
-##        item_names = ['Delete', 'Clear Selections', 'Open Enclosing Folder', 'Open File'] 
-##        item_funcs = [self.deleteFile, self.clearSelections, self.openFolder, self.openFile] 
-##
-##        pmenu = wx.Menu()
-##
-##        for (iname,ifunc) in zip(item_names,item_funcs):
-##            item = pmenu.Append(-1, iname)
-##            self.Bind(wx.EVT_MENU, ifunc, item)
-##    
-##        return pmenu
-
+    # -------------------------- Widget Actions  ------------------------- #
+    # Related Methods but not directly connected to any event 
+    # -------------------------------------------------------------------- #
 
     def set_stdview(self, panel): 
         '''Sets the std view via a panel''' 
@@ -234,18 +220,14 @@ class MainPanel(wx.Panel):
         self.cmppanel = panel
 
 
-
-    # -------------------------- Widget Actions  ------------------------- #
-    # Related Methods but not directly connected to any event 
-    # -------------------------------------------------------------------- #
-
     def cprint (self, s='\n'): 
         """Abstracts out console printing whether TextCtrl or otherwise"""
         self.t_console.AppendText(s)
 
 
-
-    # -------------------------------------------------------------------------------- #
+    # -------------------------- Widget Actions  ------------------------- #
+    # 
+    # -------------------------------------------------------------------- #
     def updateStatus(self, del_flist):
         """Update search results after files have been deleted"""
            
@@ -269,50 +251,6 @@ class MainPanel(wx.Panel):
     # -------------------------- Widget Actions  -------------------------- #
     # Direct Bindings (callbacks) - respond to events 
     # --------------------------------------------------------------------- #
-
-##     def checkSelected(self, e=None):
-##         """Checks the corresponding boxes for selected results"""
-## 
-##         alist = self.srch_results_list # alias
-##         isel = self.clbx_results.GetSelections()
-##         for i in isel:
-##             if not alist[i].startswith('##'):
-##                self.clbx_results.Check(i)
-## 
-##         self.filesel_list = [f.strip() for f in self.clbx_results.GetCheckedStrings()]
-## 
-## 
-##     def processCheckedResults(self, e=None):
-##         """Processes the checked boxes results to figure out if they are 
-##         kosher choices, else deselects them"""
-## 
-##         # print "WTF"
-##         alist = self.srch_results_list # alias
-##         checked_nums = self.clbx_results.GetChecked()
-##         for i in checked_nums: 
-##             if alist[i].startswith('##'):
-##                 self.clbx_results.Check(i, False)
-##     
-##         self.filesel_list = [f.strip() for f in self.clbx_results.GetCheckedStrings()]
-##     
-## 
-
-## >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-## TEMP - DUMMY FUNCTIONS TO GET GOING...    
-## <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    def checkSelected(self, e=None):
-        pass
-
-    def processCheckedResults(self, e=None):
-        pass
-
-    def processCheckedResults(self, e=None):
-        pass
-
-    def showPopup(self, event):
-        pass
-
 
 
     # -------------------------------------------------------------------------------- #
@@ -406,16 +344,19 @@ class MainPanel(wx.Panel):
     def onClearConsole(self, e=None):
          """Clears the console in the window"""
          self.t_console.SetValue('')
-         ## self.clbx_results.Set([])    TODO
-         # self.srch_results_list = []     TODO
-         # self.srch_sizes_list = [] 
 
 
     # -------------------------------------------------------------------------------- #
     def onAdd1(self, e=None):
         """Adds directory entry into list of search dirs""" 
 
+        compare_mode = self.rb_compare.GetValue() 
+        if compare_mode and len(self.dirlist) == 2: 
+            self.cprint ("ERROR. Cannot add more than 2 directories into search list in 'Compare Mode'\n") 
+            return
+
         dpath = self.t_add1.GetValue().strip('\n').strip()
+
 
         if dpath == '': 
             return
@@ -445,6 +386,7 @@ class MainPanel(wx.Panel):
 
 
  
+    # -------------------------------------------------------------------------------- #
     def onDel1(self, e=None):
         """Removes directory entry from list of search dirs""" 
 
@@ -522,77 +464,6 @@ class MainPanel(wx.Panel):
     # -------------------------- Widget Actions  -------------------------- 
     # Right-click/Popup Menu options
     # -------------------------------------------------------------------- 
-
-##     def showPopup(self, event):
-##         pos = event.GetPosition()
-##         pos = self.ScreenToClient(pos)
-##         self.PopupMenu(self.popupmenu, pos)
-## 
-## 
-##     def clearSelections (self, e=None):
-##         """Unchecks the (checked) file selections in search results"""
-##          
-##         checked_nums = self.clbx_results.GetChecked()
-##         for i in checked_nums: 
-##             self.clbx_results.Check(i, False)
-##        
-##         self.filesel_list = []
-## 
-## 
-##     def openFile (self, e=None):
-##         """Opens selected file from console listbox"""
-##         # print "hello OPENFILE !!!" 
-##         if len(self.filesel_list) == 1:
-##             try:
-##                 fname = self.filesel_list.pop(0)
-##                 os.system('open ' + fname) # self.filesel_list.pop(0))
-##             except:
-##                 self.cprint ("Could not open file %s for some reason!" % (fname))
-##         elif len(self.filesel_list) > 1:
-##             self.cprint("Cannot open multiple files. Please select ONLY one\n")
-## 
-## 
-##     def openFolder (self, e=None):
-##         """Opens enclosing folder of selected file in console listbox"""
-##         # print "hello OPENFOLDER !!!" 
-##         if len(self.filesel_list) == 1:
-##             dname = os.path.dirname(self.filesel_list.pop(0))
-##             try:
-##                 os.system('open ' + dname) 
-##             except:
-##                 self.cprint ("Could not open file %s for some reason!" % (fname))
-##         elif len(self.filesel_list) > 1:
-##             self.cprint("Cannot open multiple enclosing folders. Please select ONLY one\n")
-## 
-## 
-##     def deleteFile (self, e=None):
-##         """Deletes selected files in console listbox"""
-##         # print "hello DELETE selected files", self.filesel_list
-##         msg = "Do you want to delete the checked files?"
-##         yesnodlg = wx.MultiChoiceDialog(None, message=msg, caption=msg, choices=self.filesel_list, style=wx.OK|wx.CANCEL|wx.RESIZE_BORDER)
-##         yesnodlg.SetSelections(range(len(self.filesel_list)))
-## 
-##         if yesnodlg.ShowModal() != wx.ID_OK: 
-##             return
-## 
-##         final_selection = [self.filesel_list[i] for i in yesnodlg.GetSelections()]
-## 
-##         # for testing only 
-##         # for i in yesnodlg.GetSelections():
-##         #     print "WILL DELETE >" + self.filesel_list[i] + "<"
-##         # return
-## 
-##         for f in final_selection:
-##             try:
-##                 os.unlink(f)
-##             except:
-##                 self.cprint ("Could not delete file %s for some reason!" % (f))
-##                 continue
-## 
-##         self.updateStatus(final_selection)
-## 
-## 
-
 
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
