@@ -10,12 +10,12 @@ a generic function that is used though...)
 
 
 # hierarchy
-# find_duplicates_wxtop
+# dupfinder_wxtop 
 # - mainpanel 
 # - stdpanel 
-# - cmppanel 
+# - cmppanel (stdpanel)
 
-from DuplicateFinder import get_qual # , format_size 
+from DuplicateFinder import get_qual, format_size 
 import os
 import os.path 
 import wx
@@ -23,19 +23,9 @@ import wx
 _DEFWIDTH_ = 500
 _BUTWIDTH_ = 130 
 
-#TODO. temporarily keep this here
-def format_size(fsize, cround=2):
-    """Returns str formatted size of fsize in bytes. Post conversion
-    rounding given by cround"""
-    fsize, qual = get_qual(fsize) 
-    qual = qual[0] if qual != '' else '' # just use initial
-    rsize = int(round(fsize,0)) if cround==0 else round(fsize,cround)
-    fsize_str = str(rsize) + ' ' + qual + 'B' 
-    return fsize_str 
-    
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-# CmpPanel class definition
+# StdPanel class definition
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
 class StdPanel(wx.Panel):
@@ -307,9 +297,9 @@ class StdPanel(wx.Panel):
                 fname = self.filesel_list.pop(0)
                 os.system('open ' + fname) # self.filesel_list.pop(0))
             except:
-                self.cprint ("Could not open file %s for some reason!" % (fname))
+                wx.MessageBox("Could not open file %s for some reason!" % (fname))
         elif len(self.filesel_list) > 1:
-            self.cprint("Cannot open multiple files. Please select ONLY one\n")
+            wx.MessageBox("Cannot open multiple files. Please select ONLY one\n")
 
 
     # -------------------------------------------------------------------- #
@@ -321,9 +311,9 @@ class StdPanel(wx.Panel):
             try:
                 os.system('open ' + dname) 
             except:
-                self.cprint ("Could not open file %s for some reason!" % (fname))
+                wx.MessageBox ("Could not open file %s for some reason!" % (fname))
         elif len(self.filesel_list) > 1:
-            self.cprint("Cannot open multiple enclosing folders. Please select ONLY one\n")
+            wx.MessageBox("Cannot open multiple enclosing folders. Please select ONLY one\n")
 
 
 

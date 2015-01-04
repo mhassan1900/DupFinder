@@ -302,17 +302,22 @@ class MainPanel(wx.Panel):
         self.cprint("-- Duplicate listing complete --\n")
 
         if compare_mode:
+            if len(self.dirlist) != 2: 
+                self.cprint('ERROR. You must have 2 folders to perform search in compare mode\n') 
+                wx.MessageBox('You must have 2 folders to perform search in compare mode', 
+                    style=wx.ICON_ERROR) 
+                return
             self.cmppanel.dup_table = dup_table
+            self.cmppanel.dirlist = self.dirlist
+            self.cmppanel.ignorelist = self.ignorelist
             self.cmppanel.displayDuplicates()
-            self.stdpanel.dirlist = self.dirlist
-            self.stdpanel.ignorelist = self.ignorelist
             self.cprint('** Check "Compare View" tab for results **\n') 
         else:       
             self.stdpanel.dup_table = dup_table
             self.stdpanel.dirlist = self.dirlist
             self.stdpanel.ignorelist = self.ignorelist
             self.stdpanel.displayDuplicates()
-            for t in self.srch_results_list: self.cprint(t+'\n')  # for DEBUG
+            ## for t in self.srch_results_list: self.cprint(t+'\n')  # for DEBUG
             self.cprint('** Check "Standard View" tab for results **\n') 
 
         self.cprint()
@@ -347,26 +352,56 @@ class MainPanel(wx.Panel):
 
 
     # -------------------------------------------------------------------------------- #
+    def checkValidDir(self, dpath):
+        """Checks if directory path is valid for entry. Returns False if it is not"""
+
+        compare_mode = self.rb_compare.GetValue() 
+        if compare_mode: 
+            if len(self.dirlist) >= 2: 
+                self.cprint ("ERROR. Cannot add more than 2 directories into search list in 'Compare Mode'\n") 
+                return False
+        
+        if not os.path.exists(dpath):
+            self.cprint("Warning. Dir path does not exist. %s will not be added\n" % (dpath))    
+            return False
+        elif dpath in self.dirlist:
+            self.cprint ("Warning. Dir already added to search list. %s will not be added\n" % (dpath))
+            return False
+
+        return True
+        
+
+    # -------------------------------------------------------------------------------- #
     def onAdd1(self, e=None):
         """Adds directory entry into list of search dirs""" 
 
-        compare_mode = self.rb_compare.GetValue() 
-        if compare_mode and len(self.dirlist) == 2: 
-            self.cprint ("ERROR. Cannot add more than 2 directories into search list in 'Compare Mode'\n") 
-            return
-
         dpath = self.t_add1.GetValue().strip('\n').strip()
-
-
         if dpath == '': 
             return
-        elif dpath in self.dirlist:
-            self.cprint ("Warning. Dir already added to search list. %s will not be added\n" % (dpath))
-        elif os.path.exists(dpath):
-            self.dirlist.append(dpath)  # superfluous?
+        elif self.checkValidDir(dpath):
+            self.dirlist.append(dpath)  
             self.lbx_dirs1.AppendAndEnsureVisible(dpath)
-        else:
-            self.cprint("Warning. Dir path does not exist. %s will not be added\n" % (dpath))    
+
+       #compare_mode = self.rb_compare.GetValue() 
+       #if compare_mode: 
+       #    if len(self.dirlist) == 2: 
+       #        self.cprint ("ERROR. Cannot add more than 2 directories into search list in 'Compare Mode'\n") 
+       #        return
+       #    
+
+       #dpath = self.t_add1.GetValue().strip('\n').strip()
+
+
+       #if dpath == '': 
+       #    return
+       #elif dpath in self.dirlist:
+       #    self.cprint ("Warning. Dir already added to search list. %s will not be added\n" % (dpath))
+       #elif os.path.exists(dpath):
+       #    self.dirlist.append(dpath)  # superfluous?
+       #    self.lbx_dirs1.AppendAndEnsureVisible(dpath)
+       #else:
+       #    self.cprint("Warning. Dir path does not exist. %s will not be added\n" % (dpath))    
+
 
     # -------------------------------------------------------------------------------- #
     def onAdd2(self, e=None):
@@ -427,9 +462,12 @@ class MainPanel(wx.Panel):
            return 
 
        dpath = ddsel.GetPath() 
-       if dpath in self.dirlist:
-           self.cprint("Warning. Dir already added to list. %s will not be added\n" % (dpath))
+
+       if not self.checkValidDir(dpath):
            return
+#      if dpath in self.dirlist:
+#          self.cprint("Warning. Dir already added to list. %s will not be added\n" % (dpath))
+#          return
 
        self.dirlist.append(dpath)
        self.lbx_dirs1.AppendAndEnsureVisible(dpath)

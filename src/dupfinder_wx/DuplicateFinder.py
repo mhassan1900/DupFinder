@@ -15,7 +15,9 @@ import os.path
 from hashsum import md5sum
 
 
-
+#<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# Standard functions 
+#<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 def get_qual(fsize):
     """Returns file size qualifier"""
     if (fsize > 2**30): 
@@ -32,7 +34,6 @@ def get_qual(fsize):
     return fsize, qual
 
 
-
 def format_size(fsize, cround=2):
     """Returns str formatted size of fsize in bytes. Post conversion
     rounding given by cround"""
@@ -41,10 +42,13 @@ def format_size(fsize, cround=2):
     rsize = int(round(fsize,0)) if cround==0 else round(fsize,cround)
     fsize_str = str(rsize) + ' ' + qual + 'B' 
     return fsize_str 
-    
 
 
 
+
+#<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# DuplicateFinder class definition
+#<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 class DuplicateFinder:
     """File utility class to help find duplicate files."""
 
@@ -335,7 +339,9 @@ class DuplicateFinder:
 
 
 
-############### test env ############### 
+#<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# Quick test environment 
+#<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
 if (__name__ == "__main__"):
     import sys

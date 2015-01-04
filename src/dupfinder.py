@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 ##########################################################################
-# File:     find_duplicate_files.py 
+# File:     dupfinder.py 
 # Version:  0.10
 # Author:   Mahmud Hassan
 # Date:     July 2011
@@ -12,15 +12,15 @@
 ##########################################################################
 
 Usage: 
-        find_duplicate_files.py <dir1> ... <dirN> [option] #  batch mode 
-        find_duplicate_files.py                            #  interactive mode  
+        dupfinder.py <dir1> ... <dirN> [option] #  batch mode 
+        dupfinder.py                            #  interactive mode  
 
         [option] must be one of -help or -column
 
 """
 
 
-import DuplicateFinder 
+from dupfinder_wx.DuplicateFinder import DuplicateFinder 
 import sys
 import argparse
 import re
@@ -90,7 +90,7 @@ def build_dupfinder(srchlist, exclist=[]):
     # ------------------------
     print "** 1. Creating file/directory structure **" 
 
-    dup_obj = DuplicateFinder.DuplicateFinder() 
+    dup_obj = DuplicateFinder() 
 
     for mypath in exclist:
        dup_obj.add2ignore(mypath) 

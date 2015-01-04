@@ -6,16 +6,17 @@
 
 # packages=['DupFinder'],               # don't work
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
-setup(name='DuplicateFinder',   # best to have same names as main source file
+setup(name='dupfinder_wx',   # best to have same names as main source file
       # author='Mahmud Hassan',
       # author_email='mahmud.hassan@gmail.com',
       version='1.0.0',
       description='Duplicate File Finder',
-      package_dir = {'': 'src'},     
-      scripts = ['scripts/dupfinder_gui.py'],
-      py_modules=['DuplicateFinder', 'hashsum', 'find_duplicates']
+      package_dir = {'': 'src'}, # /dupfinder_wx'},     
+      # packages = find_packages(exclude=('testdir',)),
+      packages = ['dupfinder_wx'],
+      scripts = ['scripts/dupfinder_gui', 'scripts/dupfinder'],
+      py_modules=['DuplicateFinder', 'hashsum'],
                 # 'find_duplicates_wxgui' , 'find_duplicates_tkgui']  # These are really scripts
 )
-

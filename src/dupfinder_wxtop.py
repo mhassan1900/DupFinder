@@ -9,8 +9,8 @@
 
 import os
 import os.path 
-import DuplicateFinder as Dup
 import wx
+import dupfinder_wx.DuplicateFinder as Dup
 from dupfinder_wx.stdpanel import StdPanel  
 from dupfinder_wx.cmppanel import CmpPanel
 from dupfinder_wx.mainpanel import MainPanel  

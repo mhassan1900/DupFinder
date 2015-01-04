@@ -1,9 +1,7 @@
-This is release 1.0.0 of Dup_Finder.
+This is release 1.0.0 of DupFinder.
 It finds duplicate files (based on hashsum signatures) from a given set of directories.  
 
 There are both GUI & command line modes:   
-    find_duplicates.py          - command line version
-    find_duplicates_wxgui.py    - GUI version
-    find_duplicates_tkgui.py    - old GUI version (just for reference)
-
+    scripts/dupfinder.py          - command line version
+    scripts/dupfinder_gui.py      - GUI version
 

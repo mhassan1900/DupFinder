@@ -10,7 +10,7 @@ install:
 	python2.7 ./setup.py install --user
 
 uninstall:
-	pip uninstall DuplicateFinder 
+	pip uninstall dupfinder_wx 
 
 cmdline:
 	python DuplicateFinder.py ".."
