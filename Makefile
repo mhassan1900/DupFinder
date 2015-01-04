@@ -17,5 +17,6 @@ cmdline:
 
 clean:
 	find . -name '*.pyc' -exec rm -rf {} \;
-	/bin/rm -rf  ./dist ./build ./src/*.egg*
+	find . -name '*.egg*' -exec rm -rf {} \;
+	/bin/rm -rf  ./dist ./build 
 
