@@ -2,6 +2,16 @@ This is release 1.0.0 of DupFinder.
 It finds duplicate files (based on hashsum signatures) from a given set of directories.  
 
 There are both GUI & command line modes:   
-    scripts/dupfinder.py          - command line version
-    scripts/dupfinder_gui.py      - GUI version
+    scripts/dupfinder             - command line version
+    scripts/dupfinder_gui      - GUI version
 
+
+Installation
+---------------
+% make install # this will install the scripts under user's site-packages directory by default
+ 
+
+Dependencies
+-------------------
+- python2.7 
+- wxpython 3.0 or higher
