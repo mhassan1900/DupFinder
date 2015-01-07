@@ -16,6 +16,70 @@ import wx
 _DEFWIDTH_ = 500
 _BUTWIDTH_ = 130 
 
+
+
+
+
+### -- BEGIN OF PROGRESS DIALOG --
+
+from threading import Thread
+from wx.lib.pubsub import pub
+
+
+class TestThread(Thread):
+    """Test Worker Thread Class."""
+ 
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Init Worker Thread Class."""
+        Thread.__init__(self)
+        self.start()    # start the thread
+ 
+    #----------------------------------------------------------------------
+    def run(self):
+        """Run Worker Thread."""
+        # This is the code executing in the new thread.
+        for i in range(20):
+            wx.Sleep(1)
+            wx.CallAfter(pub.sendMessage, "update", msg="")
+
+
+
+# class MyProgressDialog(wx.Dialog):
+class MyProgressDialog(wx.ProgressDialog):
+    """Dialog box that can receive updates from a thread"""
+ 
+    #----------------------------------------------------------------------
+    def __init__(self):
+        """Constructor"""
+        # wx.Dialog.__init__(self, None, title="Progress")
+        wx.ProgressDialog.__init__(self, title='Finding Duplicates', message='Working', maximum=100, parent=None,
+               style=wx.PD_AUTO_HIDE | wx.PD_ELAPSED_TIME) #  | wx.PD_APP_MODAL)
+
+        self.count = 0
+        # self.progress = wx.Gauge(self, range=20)
+        #sizer = wx.BoxSizer(wx.VERTICAL)
+        #sizer.Add(self.progress, 0, wx.EXPAND)
+        #self.SetSizer(sizer)
+ 
+        # create a pubsub receiver
+        pub.subscribe(self.updateProgress, "update")
+ 
+    #----------------------------------------------------------------------
+    def updateProgress(self, msg):
+        """"""
+        self.count += 1
+ 
+        #if self.count >= 20:
+        #    self.Destroy()
+        # 
+        # self.progress.SetValue(self.count)
+        self.Update(self.count)
+
+
+### -- END OF PROGRESS DIALOG --
+
+
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # StdPanel class definition
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
@@ -97,8 +161,13 @@ class MainPanel(wx.Panel):
         self.t_add1.SelectAll()
         self.t_add2.SelectAll()
         self.rb_finddup.SetValue(True)  # default mode 
-        self.sb_status.SetStatusText( \
-            "Steps: [1] Select folder(s) [2] Hit Search [3] Left mouse to select files, Right click to take action") 
+        self.sb_status.SetFieldsCount(2)
+        #self.sb_status.SetStatusText( \
+        #    "Steps: [1] Select folder(s) [2] Hit Search [3] Left mouse to select files, Right click to take action") 
+        self.sb_status.SetStatusWidths([-3, -1]) # doen't seem to work
+        self.sb_status.SetFields( ['Steps: [1] Select folder(s) [2] Search [3] Choose a tab', '->']) 
+        ## self.g_progress = wx.Gauge(self.sb_status, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH) 
+       
 
 
     # -------------------------------------------------------------------------------- #
@@ -225,28 +294,6 @@ class MainPanel(wx.Panel):
         self.t_console.AppendText(s)
 
 
-    # -------------------------- Widget Actions  ------------------------- #
-    # 
-    # -------------------------------------------------------------------- #
-    def updateStatus(self, del_flist):
-        """Update search results after files have been deleted"""
-           
-        #self.filesel_list = []    # TODO. uncheck everything
-        #self.l_status.configure(text='Clear console and hit Search again')
-
-        self.filesel_list = []
-        self.clbx_results.Set([])
-
-        # update listing contents in place & then the listbox in search results
-        for i in range(len(self.srch_results_list)): 
-            f,s = self.srch_results_list[i], self.srch_sizes_list[i]
-
-            if f.strip().startswith('##'):  
-                self.srch_results_list[i] = f + '(OUTDATED)' 
-            elif f.strip() in del_flist: 
-                self.srch_results_list[i] = '##' + f[2:] + ' (DELETED)' 
-            self.clbx_results.Append( self.srch_results_list[i] ) 
-
 
     # -------------------------- Widget Actions  -------------------------- #
     # Direct Bindings (callbacks) - respond to events 
@@ -292,8 +339,29 @@ class MainPanel(wx.Panel):
         self.cprint()
         self.cprint("-- Directory structure creation complete --\n")
         self.cprint("** 2. Finding duplicates **\n")
-   
-        dup_table = dup_obj.get_duplicates()
+  
+
+
+        # -- progress bar indicator --
+        ## TestThread()
+        ## p_dlg = MyProgressDialog()
+
+        
+        #p_dlg = wx.ProgressDialog(title='Finding Duplicates', message='Working', maximum=100, parent=None,
+        #      style=wx.PD_AUTO_HIDE | wx.PD_ELAPSED_TIME) #  | wx.PD_APP_MODAL)
+
+        ## -- Separate thread --
+        #keepGoing = True 
+        #count = 0
+        #while keepGoing and count < 100:
+        #   count = count + 1
+        #   wx.Sleep(1)
+        #   keepGoing = p_dlg.Update(count)
+        # -- ------
+
+        dup_table = dup_obj.get_duplicates()        # <-- this should be on one thread
+        ## p_dlg.Destroy() 
+
 
         #TODO. This stuff is redundant now...
         self.srch_results_list, self.srch_sizes_list =  dup_obj.dump_duplicates_list()
