@@ -160,19 +160,44 @@ class StdPanel(wx.Panel):
 
     def updateStatus(self, del_flist):
         """Update search results after files have been deleted"""
-      
+     
+
+        # THIS IS THE NEW METHOD - appears to be EVEN slower than original ?? 
+        #del_set = set(del_flist)
+
+#       new_dict = {}
+
+#       for k, vlist in self.dup_table.items():
+#           if len(del_set) == 0:
+#               break
+#           tmplist = [] 
+#           for v in vlist[1:]:
+#               if v in del_set:
+#                   del_set.remove(v) 
+#               else:
+#                   tmplist.append(v)
+#           if len(tmplist) > 1: 
+#               tmplist.insert(0, vlist[0])
+#               new_dict[k] = tmplist
+   
+#       self.dup_table = new_dict
+
+        # THIS IS THE ORIGINAL METHOD - pretty slow
 
         del_set = set(del_flist)
 
         for k, vlist in self.dup_table.items():
-            vset = set(vlist)
-            for v in del_set.intersection(vset):
-                ## print 'Removing ', v
-                vlist.remove(v)
-            if len(vlist) < 3: 
-                del self.dup_table[k]
-            else:
-                self.dup_table[k] = vlist
+           vset = set(vlist)
+           for v in del_set.intersection(vset):
+               ## print 'Removing ', v
+               vlist.remove(v)
+           if len(vlist) < 3: 
+               del self.dup_table[k]
+           else:
+               self.dup_table[k] = vlist
+
+        #for k, vlist in new_dict.items():       print 'NEW {} -> {}'.format(k, vlist) 
+        #for k, vlist in self.dup_table.items(): print 'DUP {} -> {}'.format(k, vlist) 
 
         self.displayDuplicates()
 
@@ -197,9 +222,12 @@ class StdPanel(wx.Panel):
 
         tot_excess = 0
 
-        ## sorted_sizes = sorted(vlist[0] for vlist in self.dup_table. TODO. easiest w/pandas
 
-        for k,vlist in self.dup_table.items():
+        sorted_list = sorted( self.dup_table.values(), key=lambda x: x[0], reverse=True ) 
+
+
+        # for k,vlist in self.dup_table.items():
+        for vlist in sorted_list: 
             sz_bytes = vlist[0]     # do NOT pop(0) -- modifies the hash table
             sz_excess = sz_bytes*(len(vlist)-2) 
             tot_excess += sz_excess 
@@ -219,10 +247,11 @@ class StdPanel(wx.Panel):
                 self.clbx_results.Append('    {}'.format(v))
 
         # update summary 
-        self.t_summary.AppendText('Directories searched   : {}\n'.format(str(len(self.dirlist))) )   
-        self.t_summary.AppendText('Directories excluded   : {}\n'.format(str(len(self.ignorelist))) )   
-        self.t_summary.AppendText('Duplicate sets found   : {}\n'.format(str(len(self.dup_table))) )
-        self.t_summary.AppendText('Total excess space used: {}\n'.format(format_size(tot_excess,0)) )
+        self.t_summary.AppendText('Directories searched        : {}\n'.format(len(self.dirlist)))    
+        self.t_summary.AppendText('Directories excluded        : {}\n'.format(len(self.ignorelist)))    
+        self.t_summary.AppendText('Duplicate sets found        : {}\n'.format(len(self.dup_table))) 
+        self.t_summary.AppendText('Total excess space used     : {}\n'.format(format_size(tot_excess,0))) 
+        self.t_summary.AppendText('Files selected for deletion : {}\n'.format(len(self.filesel_list))) 
        
 
     # -------------------------- Widget Actions  ------------------------- #
