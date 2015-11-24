@@ -11,8 +11,15 @@ $(function () {
             { type: 'radio', id: 'duplicates_r', group: '1', caption: 'Find Duplicates', icon: 'fa-star', checked: true}, 
             { type: 'radio', id: 'compare_r', group: '1', caption: 'Compare Two Folders', icon: 'fa-star' }
         ]
+        //[refcode]
+        //onClick: function(event) { 
+        //    console.log('EVENT: '+ event.type + ' TARGET: '+ event.target, event);
+        //}
+
     });
 
+    // html for buttons on left panel
+        // '<button class="btn" onclick="openPopup()">Open Popup</button>' + 
     var left_panel_buttons =  
         '<button id="sch_folders" class="btn" style="width:90%">Select Folder(s)</button>' +
         '<button id="sch" class="btn" style="width:90%">Search</button>' +
@@ -20,6 +27,8 @@ $(function () {
         '<button id="clr_console" class="btn" style="width:90%">Clear Console</button>' +
         '<div><h4> Extra Options </h4>'
                 
+     // <input id="yourinputname" type="file" name="yourinputname" style="display: none;" /> // [refcode]
+
     $('#layout').w2layout({
         name: 'layout',
         panels: [
@@ -41,6 +50,7 @@ $(function () {
             }
         ]
     });
+  
   
     // default tab selection
     w2ui.layout.panels[2].tabs.active = 'main_tab'; 
@@ -65,8 +75,11 @@ $(function () {
 
 
     // -- event handlers(for buttons) AJAX calls --
+
     // TODO. sch_mode must be encoded as toolbar state in json not as route ?
     $("#sch_folders").click(function() {
+        // alert("You clicked something");
+
         console.log('sch_mode is ' + sch_mode); 
         $.get('search/' + sch_mode, {fname: 'mahmud', lname: 'hassan'}, function(response) {
             received = response.search_results;
@@ -74,13 +87,64 @@ $(function () {
         });
     });
 
+
     // <button id="id">Open</button>
     // <input id="yourinputname" type="file" name="yourinputname" style="display: none;" />
 
     $("#sch").click(function() {
+        // alert("You clicked something");
         $.get('searchmode/std', {fname: 'nothing'}, function(response) {
             alert(response);
         });
     });
 
 
+/*  [refcode] -- file browser w/hidden input --
+[CSS section]
+    .hiddenfile {
+         width: 0px;
+         height: 0px;
+         overflow: hidden;
+    }
+
+[HTML section]
+    div>
+      <input class="hiddenfile" name="upload" type="file" id="fileinput"/>
+      <button id="fileupload">some button</button>
+    </div>
+
+[Javascript section]
+    $("#fileupload").on("click", function() {
+        $("#fileinput").trigger("click");
+    });
+*/
+
+
+
+
+/* [refcode]
+<input type="file" id="dirs" name="files[]" multiple />
+<output id="list"></output>
+
+  function handleFileSelect(evt) {
+    var files = evt.target.files; // FileList object
+
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    for (var i = 0, f; f = files[i]; i++) {
+      output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                  f.size, ' bytes, last modified: ',
+                  f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                  '</li>');
+    }
+    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+  }
+*/
+
+
+/*
+    $('#sch_folders').on('click', function() {
+        $('#sch_folders').trigger('click');
+    });
+*/
+});
