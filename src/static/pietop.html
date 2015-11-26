@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Remodel</title>
+    <link rel="stylesheet" type="text/css" href="http://w2ui.com/src/w2ui-1.4.2.min.css" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://w2ui.com/src/w2ui-1.4.2.min.js"></script>
+    <script src="http://www.d3plus.org/js/d3.js"></script>
+    <script src="http://www.d3plus.org/js/d3plus.js"></script>
+</head>
+<body>
+
+<div>
+    <div id="grid" style="width: 50%; height: 700px; float: left;"> </div>
+    <div id="viz" style="width: 50%; height: 700px; float: right;"> </div>
+</div>
+
+
+
+<script type="text/javascript">
+var top_records = [
+    {"Category":"General Condition","Description":"","Cost":8200,"recid":0},
+    {"Category":"Site Work","Description":"","Cost":1760,"recid":1},
+    {"Category":"Masonry","Description":"","Cost":1050,"recid":2},
+    {"Category":"Wood & Plastics","Description":"","Cost":7360,"recid":3},
+    {"Category":"Thermal & Moisture Protection","Description":"","Cost":1000,"recid":4},
+    {"Category":"Doors & Windows","Description":"","Cost":1040,"recid":5},
+    {"Category":"Finishes","Description":"","Cost":18440,"recid":6},
+    {"Category":"Specialties","Description":"","Cost":1965,"recid":7},
+    {"Category":"Mechanical & Plumbing","Description":"","Cost":8720,"recid":8},
+    {"Category":"Electrical","Description":"","Cost":3910,"recid":9},
+];
+
+var top_records_orig = [
+    {"Category":"General Condition","Description":"","Cost":8200,"recid":0},
+    {"Category":"Site Work","Description":"","Cost":1760,"recid":1},
+    {"Category":"Masonry","Description":"","Cost":1050,"recid":2},
+    {"Category":"Wood & Plastics","Description":"","Cost":7360,"recid":3},
+    {"Category":"Thermal & Moisture Protection","Description":"","Cost":1000,"recid":4},
+    {"Category":"Doors & Windows","Description":"","Cost":1040,"recid":5},
+    {"Category":"Finishes","Description":"","Cost":18440,"recid":6},
+    {"Category":"Specialties","Description":"","Cost":1965,"recid":7},
+    {"Category":"Mechanical & Plumbing","Description":"","Cost":8720,"recid":8},
+    {"Category":"Electrical","Description":"","Cost":3910,"recid":9},
+];
+
+
+var records_data = [
+    {"Category":"General Condition","Description":"Project Facilitation","Cost":2200,"recid":0},
+    {"Category":"General Condition","Description":"Permit & Fees","Cost":2000,"recid":1},
+    {"Category":"General Condition","Description":"Cleanup","Cost":1650,"recid":2},
+    {"Category":"General Condition","Description":"Setup Equipment & Tools","Cost":1000,"recid":3},
+    {"Category":"General Condition","Description":"Dumpster","Cost":1350,"recid":4},
+    {"Category":"Site Work","Description":"Excavation","Cost":880,"recid":5},
+    {"Category":"Site Work","Description":"Demolition","Cost":880,"recid":6},
+    {"Category":"Masonry","Description":"Stone Countertop","Cost":500,"recid":7},
+    {"Category":"Masonry","Description":"<undefined>","Cost":550,"recid":8},
+    {"Category":"Wood & Plastics","Description":"Case Work","Cost":1500,"recid":9},
+    {"Category":"Wood & Plastics","Description":"Rough Carpentry","Cost":3100,"recid":10},
+    {"Category":"Wood & Plastics","Description":"Finish Carpentry","Cost":2760,"recid":11},
+    {"Category":"Thermal & Moisture Protection","Description":"Under floor lament","Cost":1000,"recid":12},
+    {"Category":"Doors & Windows","Description":"Doors & Hardware","Cost":1040,"recid":13},
+    {"Category":"Finishes","Description":"Tiles","Cost":5460,"recid":14},
+    {"Category":"Finishes","Description":"Hardwood floor material","Cost":1925,"recid":15},
+    {"Category":"Finishes","Description":"Painting - interior","Cost":2260,"recid":16},
+    {"Category":"Finishes","Description":"<undefined>","Cost":1025,"recid":17},
+    {"Category":"Finishes","Description":"Wood flooring","Cost":3500,"recid":18},
+    {"Category":"Finishes","Description":"Drywall","Cost":4270,"recid":19},
+    {"Category":"Specialties","Description":"Shower Accessories","Cost":165,"recid":20},
+    {"Category":"Specialties","Description":"Shower Enclosure","Cost":1800,"recid":21},
+    {"Category":"Mechanical & Plumbing","Description":"Plumbing Fixtures","Cost":440,"recid":22},
+    {"Category":"Mechanical & Plumbing","Description":"Rough & Finish Plumbing","Cost":7020,"recid":23},
+    {"Category":"Mechanical & Plumbing","Description":"Rough & Finish Mechanical","Cost":1260,"recid":24},
+    {"Category":"Electrical","Description":"Rough & Finish Electrical","Cost":2760,"recid":25},
+    {"Category":"Electrical","Description":"Electrical Fixtures","Cost":1150,"recid":26}
+];
+
+tot_sum = 0;
+for (var i=0; i < records_data.length; i++ ) {
+    tot_sum += records_data[i].Cost;
+}
+
+var records_hash = {};
+for (var i=0; i < top_records.length; i++ ) {
+    records_hash[top_records[i].Category] = [];
+}
+for (var j=0; j < records_data.length; j++ ) {
+    var name = records_data[j].Category;
+    records_hash[name].push( records_data[j] );
+}
+
+
+for (var i=0; i < top_records.length; i++ ) {
+    var name = top_records[i].Category;
+    sub_records = top_records[i]; 
+    var ssum = sub_records.Cost; 
+    console.log( sub_records );
+
+    records_hash[name].push( {
+        summary: true, 
+        recid: 'Subgroup-' + records_data[i].recid, 
+        Category: name, 
+        Description: '',
+        Cost: ssum, 
+        style: "background-color: #C2F5B4" 
+    });
+}
+
+
+
+
+top_records.push(
+    { summary: true, 
+      recid: 'S-1', 
+      Category: 'Total',
+      Description: '', 
+      Cost: tot_sum 
+    })
+
+$(function () {    
+    $('#grid').w2grid({ 
+        name: 'grid', 
+        sortData: [ { field: 'recid', direction: 'asc' } ],
+        columns: [                
+            { field: 'recid', caption: 'Item #', size: '10%', sortable: true },
+            { field: 'Category', caption: 'Category', size: '30%', sortable: true },
+            { field: 'Description', caption: 'Description', size: '40%', sortable: true },
+            { field: 'Cost', caption: 'Cost', size: '20%', sortable: true , render: 'money' },
+        ],
+        records: top_records,
+        onExpand: function (event) {
+            // console.log('event ->', event);
+            if (w2ui.hasOwnProperty('subgrid-' + event.recid)) w2ui['subgrid-' + event.recid].destroy();
+            $('#'+ event.box_id).css({ margin: '0px', padding: '0px', width: '100%' }).animate({ height: '105px' }, 100);
+            setTimeout(function () {
+                $('#'+ event.box_id).w2grid({
+                    name: 'subgrid-' + event.recid, 
+                    show: { columnHeaders: false },
+                    fixedBody: true,
+                    columns: [                
+                        { field: 'recid', caption: 'Item #', size: '10%'},
+                        { field: 'Category', caption: 'Category', size: '30%'},
+                        { field: 'Description', caption: 'Description', size: '40%'},
+                        { field: 'Cost', caption: 'Cost', size: '20%', render: 'money' },
+                    ],
+                    // records: records_hash[event.Category],
+                    records: records_hash[top_records[event.recid]['Category']],
+                });
+                w2ui['subgrid-' + event.recid].resize();
+            }, 300);
+        }
+    });    
+});
+
+
+  d3plus.viz()
+    .container("#viz")
+    .data(top_records_orig)
+    .type("pie")
+    .id("Category") // name
+    .size("Cost")   // value
+    .draw();
+
+</script>
+
+
+
+</body>
+</html>

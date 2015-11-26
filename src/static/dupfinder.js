@@ -13,6 +13,52 @@ $('#myTabs a').click(function (e) {
   $(this).tab('show')
 })
 
+// SIZE
+
+[
+    dupset_size:    // size of files in dupset
+    dupset_count:   // num of files in dupset
+    dupset_files:   [
+        {file_name, dir_name, file_size
+    ]
+]
+
+$(function () {    
+    $().w2grid({ 
+        name: 'grid', 
+        sortData: [ { field: 'recid', direction: 'asc' } ],
+        columns: [                
+            { field: 'recid', caption: 'Item #', size: '10%', sortable: true },
+            { field: 'Category', caption: 'Category', size: '30%', sortable: true },
+            { field: 'Description', caption: 'Description', size: '40%', sortable: true },
+            { field: 'Cost', caption: 'Cost', size: '20%', sortable: true , render: 'money' },
+        ],
+        records: top_records,
+        onExpand: function (event) {
+            // console.log('event ->', event);
+            if (w2ui.hasOwnProperty('subgrid-' + event.recid)) w2ui['subgrid-' + event.recid].destroy();
+            $('#'+ event.box_id).css({ margin: '0px', padding: '0px', width: '100%' }).animate({ height: '105px' }, 100);
+            setTimeout(function () {
+                $('#'+ event.box_id).w2grid({
+                    name: 'subgrid-' + event.recid, 
+                    show: { columnHeaders: false },
+                    fixedBody: true,
+                    columns: [                
+                        { field: 'recid', caption: 'Item #', size: '10%'},
+                        { field: 'Category', caption: 'Category', size: '30%'},
+                        { field: 'Description', caption: 'Description', size: '40%'},
+                        { field: 'Cost', caption: 'Cost', size: '20%', render: 'money' },
+                    ],
+                    // records: records_hash[event.Category],
+                    records: records_hash[top_records[event.recid]['Category']],
+                });
+                w2ui['subgrid-' + event.recid].resize();
+            }, 300);
+        }
+    });    
+});
+
+
 
 /*
 var sch_mode = 'stdmode';   // rb can change to 'cmpmode'
