@@ -7,15 +7,23 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
     <title>Duplicate File Finder</title>
-</head>
 
 
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <!-- link rel="stylesheet" type="text/css" href="js_stuff/w2ui/latest/w2ui.min.css" --> 
-    <script type="text/javascript" src="js_stuff/jquery_git/dist/jquery.min.js"></script> 
-    <!-- script type="text/javascript" src="js_stuff/w2ui/latest/w2ui.min.js"></script -->
+    <!-- link rel="stylesheet" type="text/css" href="css/w2ui.min.css" --> 
+    <script type="text/javascript" src="js/jquery.min.js"></script> 
+    <!-- script type="text/javascript" src="js/w2ui.min.js"></script -->
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
 
+    <style>
+    .scrollable-div {
+        max-height: 200px;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    </style>
+
+</head>
 
 <body>
 <!--script>
@@ -31,24 +39,33 @@
 
 
 <div class="container-fluid">
-    <div class="row">
-        <h2> Duplicate File Finder</h2>
-        <ul class="nav nav-pills pull-right">
-          <li role="presentation" class="active"><a href="#">Standard Mode</a></li>
-          <li role="presentation"><a href="#">Compare Mode</a></li>
-        </ul>
+    <!-- header row --> 
+    <div class="row">  
+        <!-- div style="float: left; width: 400px;" --> 
+        <div class="col-md-3">  
+            <h3>Duplicate File Finder</h3>
+        </div>
+        <!-- div style="float: right;" --> 
+        <div class="col-md-9">  
+            <ul class="nav nav-pills navbar-right"> <!-- pull-right" also seems to work-->
+              <li role="presentation" class="active"><a href="#">Standard Mode</a></li>
+              <li role="presentation"><a href="#">Compare Mode</a></li>
+            </ul>
+        </div>
     </div>
 
+    <!-- search panel (accordion later) --> 
     <div class="row">
-        <div style="float: left; width: 100px;"> 
+        <!-- div style="float: left; width: 100px;" --> 
+        <div class="col-md-2">  
             <div class="btn-group-vertical" role="group" aria-label="Sidebar">
-                <button type="button" class="btn btn-default">Select Folders</button>
                 <button type="button" class="btn btn-default">Search</button>
+                <button type="button" class="btn btn-default">Select Folders</button>
                 <button type="button" class="btn btn-default">Clear Folders</button>
                 <button type="button" class="btn btn-default">Clear Console</button>
                 
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true">
-                    Additional Options
+                    Advanced Options
                 <span class="caret">
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="btnGroupVerticalDrop1"> 
@@ -57,16 +74,87 @@
                 </ul>
             </div>
         </div>
-        <div style="float: right;"> 
-                <button type="button" class="btn btn-default">PLACEHOLDER</button>
+        <div class="col-md-10"> 
+            <div class="scrollable-div"> 
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search Folder to Include" aria-describedby="basic-addon1">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="basic-addon1">Add</button>
+                    </span> 
+                </div>
+
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Folder Name" aria-describedby="basic-addon1" disabled>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="basic-addon1">Remove</button>
+                    </span> 
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Folder 1" aria-describedby="basic-addon1" disabled>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="basic-addon1">Remove</button>
+                    </span> 
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Folder 2" aria-describedby="basic-addon1" disabled>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="basic-addon1">Remove</button>
+                    </span> 
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Folder 3" aria-describedby="basic-addon1" disabled>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="basic-addon1">Remove</button>
+                    </span> 
+                </div>
+            </div> 
+
         </div>
     </div>
+
+    <br>
+
     <div class="row">
-    <div>
-        <button type="button" class="btn btn-default">BODY PLACEHOLDER</button>
+        <div class="col-md-2"></div>
+        <div class="col-md-10">
+            <div id="accordion" role="tablist" aria-multiselectable="true">
+              <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingOne">
+                    <a class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" 
+                        aria-expanded="false" aria-controls="collapseOne">
+                      Selections for Advanced Options 
+                    </a>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                  <label>Folders to exclude</label> 
+                    <input type="text" class="form-control" placeholder="Folder 3" aria-describedby="basic-addon1" >
+                    <input type="text" class="form-control" placeholder="Folder 3" aria-describedby="basic-addon1" >
+                    <input type="text" class="form-control" placeholder="Folder 3" aria-describedby="basic-addon1" >
+                  <br>
+                  <label>Skip Matches</label> 
+                    <input type="text" class="form-control" placeholder="Folder 3" aria-describedby="basic-addon1" >
+                    <input type="text" class="form-control" placeholder="Folder 3" aria-describedby="basic-addon1" >
+                    <input type="text" class="form-control" placeholder="Folder 3" aria-describedby="basic-addon1" >
+                </div>
+              </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- tabbed panel --> 
+    <div class="row">
+        <ul class="nav nav-tabs" id="myTabs">
+            <li role="presentation" class="active"><a href="#">Console</a></li>
+            <li role="presentation"><a href="#">Standard</a></li>
+            <li role="presentation"><a href="#">Compare</a></li>
+        </ul>
     </div> 
+    
 </div>
 
+<script type="text/javascript" src="dupfinder.js">
+</script>
 
 
 

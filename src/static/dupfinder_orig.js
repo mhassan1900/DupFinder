@@ -1,20 +1,3 @@
-// NEEDS KNOWLEDGE OF HTML LAYOUT -- don't like it
-
-// [refcode] programmatically select tab
-// $('#myTabs a[href="#profile"]').tab('show') // Select tab by name
-$('#myTabs a:first').tab('show') // Select first tab
-$('#myTabs a:last').tab('show') // Select last tab
-$('#myTabs li:eq(1) a').tab('show') // Select third tab (0-indexed)
-
-
-
-$('#myTabs a').click(function (e) {
-  e.preventDefault()
-  $(this).tab('show')
-})
-
-
-/*
 var sch_mode = 'stdmode';   // rb can change to 'cmpmode'
 
 $(function () {    
@@ -62,8 +45,9 @@ $(function () {
     // default tab selection
     w2ui.layout.panels[2].tabs.active = 'main_tab'; 
     w2ui.layout.panels[2].tabs.refresh();
+
     // get toolbar state
-    w2ui.toolbar.on('click', function (event) { // replace 'click' w/"*" for any event (and get event.type)
+    w2ui.toolbar.on('click', function (event) { // replace 'click' w/* for any event (and get event.type)
         sch_mode = (event.target==='compare_r') ? 'cmpmode' : 'stdmode';   
         w2ui.toolbar.refresh();
 
@@ -100,4 +84,3 @@ $(function () {
     });
 
 
-*/
