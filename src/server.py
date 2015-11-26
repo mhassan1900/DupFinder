@@ -1,3 +1,5 @@
+#!/usr/bin/env ipython
+
 import tornado.ioloop
 import tornado.web
 
@@ -12,10 +14,7 @@ _debug_ = True
 class MainHandler(RequestHandler):
     def get(self): # , org, author):
         self.set_header("Access-Control-Allow-Origin", "*")
-        #authors = gs_function.get_related_persons(tc, author)
-        #words = gs_function.get_wordfreq_byauth(tc, author)
-
-        self.write('Goodbye World')
+        self.write('Hello World - go to index page')
         #self.write({
         #    'org': org,
         #    'author': author,
@@ -91,10 +90,26 @@ def make_app():
 
 
 
+def open_inbrowser(url):
+    import webbrowser
+    # Open URL in new browser window
+    webbrowser.open_new(url) # opens in default browser
+    # Opens in safari browser
+    webbrowser.get('safari').open_new(url)
+    # Open URL in a new tab
+    webbrowser.open_new_tab(url) # opens in default browser
+    # Opens in safari browser
+    webbrowser.get('safari').open_new_tab(url)
+
+
 def main():
     app = make_app()
-    app.listen(8888)
+    app.listen(8890)
     tornado.ioloop.IOLoop.current().start()
+
+    # attempt to open in new browser window
+    # open_inbrowser('localhost:8890/dupfinder.html') 
+
 
 if __name__ == "__main__":
     main() 
