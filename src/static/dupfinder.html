@@ -10,10 +10,10 @@
 
 
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <!-- link rel="stylesheet" type="text/css" href="css/w2ui.min.css" --> 
     <script type="text/javascript" src="js/jquery.min.js"></script> 
-    <!-- script type="text/javascript" src="js/w2ui.min.js"></script -->
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/w2ui.min.js"></script> 
+    <link rel="stylesheet" type="text/css" href="css/w2ui.min.css"> 
 
     <style>
     .scrollable-div {
@@ -142,15 +142,24 @@
     </div>
 
 
-    <!-- tabbed panel --> 
-    <div class="row">
-        <ul class="nav nav-tabs" id="myTabs">
-            <li role="presentation" class="active"><a href="#">Console</a></li>
-            <li role="presentation"><a href="#">Standard</a></li>
-            <li role="presentation"><a href="#">Compare</a></li>
+    <br> 
+    <div class= "row">
+        <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist" id="myTabs">
+            <li role="presentation" class="active"><a href="#console" aria-controls="console" role="tab" data-toggle="tab">Console</a></li>
+            <li role="presentation"><a href="#standard" aria-controls="standard" role="tab" data-toggle="tab">Standard</a></li>
+            <li role="presentation"><a href="#compare" aria-controls="compare" role="tab" data-toggle="tab">Compare</a></li>
         </ul>
-    </div> 
-    
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="console">A</div>
+            <div role="tabpanel" class="tab-pane" id="standard">B</div>
+            <div role="tabpanel" class="tab-pane" id="compare">C</div>
+        </div>
+    </div>
+
+
 </div>
 
 <script type="text/javascript" src="dupfinder.js">

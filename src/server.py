@@ -39,20 +39,40 @@ class MainHandler(RequestHandler):
 class SearchModeHandler(RequestHandler):
     def get(self, search_mode): # arguments as searchmode/<....>   
         self.set_header("Access-Control-Allow-Origin", "*")
+
+        print "Setting search mode to < {} >".format(search_mode) #cmpmode or stdmode
         #myname = self.get_query_arguments('fname')     # 'fname': [u'value'] 
-        myname = self.get_query_argument('fname')   # 'fname': u'value' - raises exception
+        myname = self.get_query_argument('folders2search')   # 'fname': u'value' - raises exception
         print myname
         print 'i got something here', search_mode
         #self.set_header("Content-Type", "application/json")
-        #self.write('You chose ' + search_mode)
-        self.write( {'search_results': search_mode } )
+        search_results = { 'uname': ['abc', 'def'], 'cname': ['XYZ'] }
+        self.write( {'search_results': search_results } )
 
 
 class SearchHandler(RequestHandler):
-    def get(self): 
+    def get(self, search_mode): # search/<search_mode>/?<args>
         self.set_header("Access-Control-Allow-Origin", "*")
-        print 'Entering search'
-        self.write('Will do search now')
+        folders2search = self.get_query_argument('folders2search')          # gives [u"abc", u"def"]  
+
+        print "Setting search mode to < {} >".format(search_mode) #cmpmode or stdmode
+        print 'search mode ->', search_mode
+        print 'folders to search->', folders2search
+
+        import numpy as np
+        if search_mode == 'stdmode':
+            search_results = { 
+                'fileA': [np.random.randint(10), 'abc'], 
+                'fileB': [np.random.randint(90), 'XYZ'] 
+            }
+        else: 
+            search_results = { 
+                'fileA': [np.random.randint(10), 'cmp - abc'], 
+                'fileB': [np.random.randint(90), 'cmp - XYZ'] 
+            }
+
+        print 'returning', search_results
+        self.write( {'search_results': search_results } )
 
 
 
@@ -77,9 +97,9 @@ def make_app():
 
     application = tornado.web.Application([
         #(r"/getgamebyid/([0-9]+)", GetGameByIdHandler),
-        (r'/searchmode/([\w]+)', SearchModeHandler),   # need the parenthesis for args in method get()
-        (r'/search/([\w]+)', SearchModeHandler),
-        (r'/search', SearchHandler),
+        ## (r'/searchmode/([\w]+)', SearchModeHandler),   # need the parenthesis for args in method get()
+        (r'/search/([\w]+)', SearchHandler),       # search w/mode info
+        ##(r'/search', SearchHandler),                   # search w/o mode info
         (r'/index', MainHandler),  
         (r'/', MainHandler),    #TODO. redirect to frontpage.html
         # anything in static/ directory is now directly accessible from localhost:<port>/ 
