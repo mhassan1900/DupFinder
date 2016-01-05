@@ -5,7 +5,8 @@
 # find_duplicates_wxtop
 # - _wxstdpanel 
 # - _wxcmppanel 
-
+import sys
+sys.path.insert(0, '.')
 
 import os
 import os.path 

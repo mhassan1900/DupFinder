@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##########################################################################
 # File:     DuplicateFinder.py
 # Version:  0.10
@@ -13,6 +14,17 @@ import re
 import os
 import os.path 
 from hashsum import md5sum
+import hashsum 
+
+_hashrefs_ = {
+   'md5':    hashsum.md5sum   ,
+   'sha1':   hashsum.sha1sum  ,
+   'sha224': hashsum.sha224sum,
+   'sha256': hashsum.sha256sum,
+   'sha384': hashsum.sha384sum,
+   'sha512': hashsum.sha512sum
+}
+
 
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
@@ -43,6 +55,90 @@ def format_size(fsize, cround=2):
     fsize_str = str(rsize) + ' ' + qual + 'B' 
     return fsize_str 
 
+
+def is_identical(fname1, fname2, hashtype='md5'):
+    """Returns True if filenames fname1 and fname2 are identical, else False.
+    If there was a problem with opening files, then returns None.
+    Uses size and optionally hash compare to check"""
+
+    errs = 0
+
+    try:
+        fsize1 = os.path.getsize(fname1)
+    except: # expect OSError
+        print "ERROR. Problem getting file size for file {}".format(fname1) 
+        errs += 1
+
+    try:
+        fsize2 = os.path.getsize(fname2)
+    except: # expect OSError
+        print "ERROR. Problem getting file size for file {}".format(fname2) 
+        errs += 1
+
+    if errs > 0: 
+        return None
+    elif fsize1 != fsize2: 
+        return False
+
+    hashfunc = _hashrefs_[hashtype]
+    h1 = hashfunc(fname1) 
+    h2 = hashfunc(fname2) 
+    return True if (h1!=None and h2!=None and h1==h2) else False 
+
+
+
+
+def search_and_insert(fgroups, fsize, hsum, fname): 
+    """Search for [fsize, hsum, fname1, fname2, ...] within fgroups. If found,
+    append fname to fname1, fname2, ... else create new list within fgroups.
+    This is really a helper function for "group_indentical()" but could conceivably
+    be used standalone.
+    NOTE. fgroups is modified on entry being it is a list""" 
+
+    if len(fgroups)==0:
+        fgroups.append([fsize, hsum, fname])
+    else: 
+        for i, g in enumerate(fgroups):
+            if fsize==g[0] and fsum==g[1]:
+               fgroups[i].append(fname)
+               return 
+        fgroups.append([fsize, hsum, fname])
+    return 
+
+
+
+def group_identical(fsize, hashtype, *fnames): 
+    """Groups a bunch of files into identical sets based on a hashsum type. 
+    NOTE. Currently, expectation is that files are of same size"""
+
+    chunksize = min(hashsum._DEFAULT_CHUNK_, fsize)
+    final = False if (fsize > 5*hashsum._DEFAULT_CHUNK_) else True
+    # put into intial or final groups depending on size
+
+    fgroups = []    # [(fsize, hsum, flist[]), (...), ... (...)]
+
+    for fname in fnames: 
+        if final: 
+            hsum = gen_hashsum(fname, hashtype) 
+        else:
+            head   = gen_partial_hashsum(fname, hashtype, chunksize)
+            middle = gen_partial_hashsum(fname, hashtype, chunksize, (fsize-chunksize)/2)  
+            tail   = gen_partial_hashsum(fname, hashtype, chunksize, -chunksize)
+            hsum = head + middle + tail     # string concat
+        search_and_insert(fgroups, fsize, hsum, fname)
+
+    if final:
+        return fgroups
+
+    newgroups = []    # [(fsize, hsum, flist[]), (...), ... (...)]
+
+    for i, g in enumerate(fgroups):
+        glist = g[2:]   
+        hsums = [gen_hashsum(fname, hashtype) for fname in glist]
+        for h, f in zip(hsums, glist):
+            search_and_insert(newgroups, g[0], h, f)
+
+    return newgroups 
 
 
 
@@ -269,6 +365,7 @@ class DuplicateFinder:
             self._find_dup() 
 
         return self._dup_fdict
+
 
 
     #********************************************************
