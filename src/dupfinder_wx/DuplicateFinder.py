@@ -10,21 +10,12 @@
 #           docstrings can be used to get more detailed documentation. 
 ##########################################################################
 
+import sys
 import re 
 import os
 import os.path 
-from hashsum import md5sum
+from hashsum import md5sum, gen_hashsum, gen_partial_hashsums
 import hashsum 
-
-_hashrefs_ = {
-   'md5':    hashsum.md5sum   ,
-   'sha1':   hashsum.sha1sum  ,
-   'sha224': hashsum.sha224sum,
-   'sha256': hashsum.sha256sum,
-   'sha384': hashsum.sha384sum,
-   'sha512': hashsum.sha512sum
-}
-
 
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
@@ -80,9 +71,8 @@ def is_identical(fname1, fname2, hashtype='md5'):
     elif fsize1 != fsize2: 
         return False
 
-    hashfunc = _hashrefs_[hashtype]
-    h1 = hashfunc(fname1) 
-    h2 = hashfunc(fname2) 
+    h1 = gen_hashsum(fname1, hashtype) 
+    h2 = gen_hashsum(fname1, hashtype) 
     return True if (h1!=None and h2!=None and h1==h2) else False 
 
 
@@ -99,7 +89,7 @@ def search_and_insert(fgroups, fsize, hsum, fname):
         fgroups.append([fsize, hsum, fname])
     else: 
         for i, g in enumerate(fgroups):
-            if fsize==g[0] and fsum==g[1]:
+            if fsize==g[0] and hsum==g[1]:
                fgroups[i].append(fname)
                return 
         fgroups.append([fsize, hsum, fname])
@@ -111,8 +101,8 @@ def group_identical(fsize, hashtype, *fnames):
     """Groups a bunch of files into identical sets based on a hashsum type. 
     NOTE. Currently, expectation is that files are of same size"""
 
-    chunksize = min(hashsum._DEFAULT_CHUNK_, fsize)
-    final = False if (fsize > 5*hashsum._DEFAULT_CHUNK_) else True
+    chunksize = 2048 # min(hashsum._DEFAULT_CHUNK_, fsize)
+    final = False if (fsize > 3*hashsum._DEFAULT_CHUNK_) else True
     # put into intial or final groups depending on size
 
     fgroups = []    # [(fsize, hsum, flist[]), (...), ... (...)]
@@ -121,9 +111,7 @@ def group_identical(fsize, hashtype, *fnames):
         if final: 
             hsum = gen_hashsum(fname, hashtype) 
         else:
-            head   = gen_partial_hashsum(fname, hashtype, chunksize)
-            middle = gen_partial_hashsum(fname, hashtype, chunksize, (fsize-chunksize)/2)  
-            tail   = gen_partial_hashsum(fname, hashtype, chunksize, -chunksize)
+            head, middle, tail = gen_partial_hashsums(fname, hashtype, chunksize)
             hsum = head + middle + tail     # string concat
         search_and_insert(fgroups, fsize, hsum, fname)
 
@@ -214,81 +202,91 @@ class DuplicateFinder:
             self._found_dup = 0                  # reset state to 0
 
 
-    def dump (self, entry=1):
-        """Dumps out data structure w/1 entry per line by default
-        or a prettier version: .dump (n) where n > 1"""
-
-        maxlen = 15
+    def dump_files (self):
+        """Dumps out file data structure w/1 entry per line. Expects dictionary of {   
+            key1: [file1, file2, ...], 
+            key2: [file1, file2, ...], 
+            keyN: [file1, file2, ...]
+        }""" 
 
         print "-- File structure --"
-        for k,v in self._file_dict.iteritems():
-            spc = ' '*(maxlen - len(str(k)))
+        for k,vlist in self._file_dict.items():
+            print '{:>20d} \t{}'.format(k, vlist[0])
+            for v in vlist[1:]: 
+                print '{:20s} \t{}'.format(' ', v)
+            print '{:20s} \t{}'.format(' ', '-' * 80 )
 
-            if (entry == 1):
-                print k , spc , v       # 1 entry per line
-                continue 
-
-            if ( len(v) == 1 ):     # only single file in list
-                print k , spc , v 
-            else:
-                print k
-                for f in v: 
-                    print ' ' * (maxlen + 3) , f
-
-        if ( len(self._zero_bytes) != 0 ): 
+        if len(self._zero_bytes) != 0: 
             print
             self.dump_zero_bytes()
 
 
-
-    def dump_zero_bytes (self, entry=1):
+    def dump_zero_bytes (self):
         """Explicitly dumps files with 0 bytes"""
 
         print "-- Zero byte files --"
-        if (entry == 1):
-            print self._zero_bytes
-        else:
-            for f in self._zero_bytes: 
-                print ' ' * (maxlen + 3) , f
-
-        print
+        print '{:20s} \t{}'.format(' ', '-' * 80 )
+        for v in self._zero_bytes:
+            print '{:20s} \t{}'.format(' ', v) 
+        print '{:20s} \t{}'.format(' ', '-' * 80 )
 
 
-
-    # TODO. There is a big BUG in dump_duplicates(0) call!!
-    def dump_duplicates (self, entry=1):
+    def dump_duplicates (self):
         """Displays duplicate files along with size in bytes"""
 
         print "-- Duplicate files --"
-        maxlen =  15 
         excess_total = 0  
 
-        for k,v in self._dup_fdict.iteritems():
-            if (maxlen < len(str(k))):
-                maxlen = len(str(k)) + 5
-            spc = ' '*(maxlen - len(str(k)))
+        if len(self._dup_fdict) == 0: 
+            print "No duplicates found" 
+            return
 
-        excess_bytes = (len(v) - 2) * v[0] 
-        excess_total +=  excess_bytes 
-
-        if (entry == 1):
-            print k , spc , v, " excess bytes: " , excess_bytes # 1 entry per line
-        else:
-            print k , spc,  v[0], " bytes each"
-            print ' ' * (maxlen + 3) , excess_bytes, " bytes excess"
-            for f in v[1:]: 
-                print ' ' * (maxlen + 3) , f
-
+        for k,vlist in self._dup_fdict.items():
+            excess_bytes = (len(vlist) - 2) * vlist[0]     
+            excess_total +=  excess_bytes 
+            print '{:>20d} \t{}'.format( vlist[0], k )
+            for v in vlist[1:]:
+                print '{:>20s} \t{}'.format( ' ', v )
+            print '{:>20d} \t{}'.format( excess_bytes, "bytes (excess)" ) 
+            print '{:20s} \t{}'.format(' ', '-' * 80 )
 
         excess_total, qual = get_qual(excess_total) 
         print "-" * 40      
-        print "Total excess space used: ", excess_total  , qual, "bytes"
-
+        print "Total excess space used: {} {}Bytes".format( excess_total , qual)
         print
 
 
-    # TODO. There might be a big BUG in dump_duplicates_log(0) call!!
-    def dump_duplicates_log (self, entry=1):
+    def dump_duplicates_log (self):
+        """Displays duplicate files along with size in bytes, but returns
+        the info into a 'log' list as opposed to the STDOUT"""
+
+        logs = []
+        logs.append("Duplicate files --")
+        excess_total = 0  
+
+        if len(self._dup_fdict) == 0: 
+            logs.append( "No duplicates found" )
+            logs.append("Total excess space used: 0 bytes")
+            logs.append('') 
+            return
+
+        for k,vlist in self._dup_fdict.items():
+            excess_bytes = (len(vlist) - 2) * vlist[0] 
+            excess_total +=  excess_bytes 
+            logs.append( '{:>20d} \t{} bytes each'.format( k, vlist[0] ) )
+            logs.append( '{:>20d} \t{}'.format( excess_bytes, "bytes excess" ) ) 
+            for v in vlist[1:]:
+                logs.append( '{:>20s} \t{}'.format( ' ', v ) ) 
+
+        excess_total, qual = get_qual(excess_total) 
+        logs.append("-" * 40)     
+        logs.append("Total excess space used: {} {}Bytes".format( excess_total , qual))
+        logs.append('') 
+
+        return logs
+
+
+    def dump_duplicates_log_orig (self, entry=1):
         """Displays duplicate files along with size in bytes, but returns
         the info into a 'log' list as opposed to the STDOUT"""
 
@@ -371,8 +369,29 @@ class DuplicateFinder:
     #********************************************************
     # Private methods
     #********************************************************
+    def _find_dup2 (self):
+      """Main method that does searching"""
+
+      for sz,vlist in self._file_dict.items():
+          if (len(vlist) == 1): continue
+          for fgroup in group_identical(sz, 'md5', *vlist):  # [sz, hsum, fname1, fname2]...
+             hsum = fgroup[1] 
+             if hsum in self._dup_fdict: 
+                (self._dup_fdict[hsum]).extend(fgroup[2:]) 
+             else:
+                self._dup_fdict[hsum] = [sz]      # first entry of list is size 
+                (self._dup_fdict[hsum]).extend(fgroup[2:]) 
+
+      # now prune out the entries that have only 1 file 
+      for h in  self._dup_fdict.keys(): 
+        if ( len(self._dup_fdict[h]) < 3 ): 
+                del self._dup_fdict [h]
+      self._found_dup = 1                  
+      return
+
 
     def _find_dup (self):
+      """Main method that does searching"""
 
       for sz,v in self._file_dict.iteritems():
             if (len(v) == 1): continue
@@ -399,6 +418,7 @@ class DuplicateFinder:
 
         ## print 'ignorelist', self._ignorelist # DEBUG
 
+        cdir = os.path.abspath(cdir) ## print 'looking at ', absroot # DEBUG
 
         for root, dirs, files in os.walk( cdir ):
 
@@ -440,26 +460,46 @@ class DuplicateFinder:
 # Quick test environment 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
+_search_type_ = 1
+
+def search_duplicates(*dirpaths):
+
+    print "-" * 60
+    print "Running duplicate file finder across followind directories" 
+    dirpaths = [os.path.abspath(cdir) for cdir in dirpaths] 
+    for d in dirpaths: print '  ', d
+    print "-" * 60
+
+    dupobj = DuplicateFinder( dirpaths[0] ) 
+    for dpath in dirpaths[1:]:
+        dupobj.update( dpath ) 
+    dupobj.dump_files() 
+
+    if _search_type_ == 2:
+        dupobj._find_dup2()
+    else:
+        dupobj._find_dup()
+    dupobj.dump_duplicates() 
+
+
 if (__name__ == "__main__"):
-    import sys
-  
+    sys.path.insert  (0, '.')
+
     if (len(sys.argv) < 2):     # no of args 
         print "No directory entered...switching to interactive mode"
         print "Enter directory for checking: "
         mypath = raw_input () 
     else:
-        mypath = sys.argv[1]
+        search_duplicates(*sys.argv[1:])
+        # mypath = sys.argv[1]
 
-    print "-" * 60
-    print "Testing file struct generation" 
-    print "-" * 60
 
-    # 1. Create data structure
-    dup_files = DuplicateFinder( mypath ) 
-    dup_files.update( "/Users/mahmud/program/vstuff/timeout" ) 
-    dup_files.dump(2) 
-    # 2. Find duplictes 
-    dup_files._find_dup()
-    dup_files.dump_duplicates() 
+    ## 1. Create data structure
+    #dup_files = DuplicateFinder( mypath ) 
+    #dup_files.update( "/Users/mahmud/program/vstuff/timeout" ) 
+    #dup_files.dump(2) 
+    ## 2. Find duplictes 
+    #dup_files._find_dup()
+    #dup_files.dump_duplicates() 
 
 

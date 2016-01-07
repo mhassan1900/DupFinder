@@ -11,6 +11,7 @@
 ##########################################################################
 
 import hashlib 
+import os.path
 """Wrapper functions for hashlib to generate hash sums on filenames"""
 
 _DEFAULT_CHUNK_ = 4096 # bytes
@@ -190,6 +191,50 @@ def gen_partial_hashsum(fname, hashtype, chunksize, offset=0):
     hsum.update (contents) 
     fin.close() 
     return hsum.hexdigest()  
+
+
+
+
+def gen_partial_hashsums(fname, hashtype="md5", chunksize=_DEFAULT_CHUNK_):
+    """Generates 3 partial hashsum on file given filename, hashtype and optionally a chunksize.
+    Hashsums are on first, middle and last "chunks" of the file.
+
+    Returns: head_hsum, middle_hsum, tail_hsum (tuple of 3 strings)
+
+    Example: gen_partial_hashsums(filename)               - returns 3 md5  hashsums on 4k byte chunks 
+             gen_partial_hashsums(filename, 'sha1')       - returns 3 sha1 hashsums on 4k byte chunks
+             gen_partial_hashsums(filename, 'sha1', 8192) - returns 3 sha1 hashsums on 8k byte chunks
+
+    NOTE. If chunksize > filesize, will just generate and return a 3-tuple of the same hashsum 
+    """
+
+
+    fsize = os.path.getsize(fname)
+
+    if chunksize > fsize:
+        hsum = gen_hashsum(fname, hashtype, chunksize)
+        return hsum, hsum, hsum
+
+    fin = _hashsum_fopen(fname)
+
+    hsum1 = _hashrefs_[hashtype]()
+    hsum2 = _hashrefs_[hashtype]()
+    hsum3 = _hashrefs_[hashtype]()
+
+    contents1 = fin.read(chunksize) # head portion
+    hsum1.update (contents1)     
+
+    fin.seek((fsize-chunksize)/2)
+    contents2 = fin.read(chunksize) # middle portion
+    hsum2.update (contents2)     
+
+    fin.seek(-chunksize, 2)
+    contents3 = fin.read(chunksize) # tail portion
+    hsum3.update (contents3)     
+
+    fin.close() 
+    return hsum1.hexdigest(), hsum2.hexdigest(), hsum3.hexdigest() 
+
 
 
 
