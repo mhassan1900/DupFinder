@@ -16,32 +16,29 @@ import wx
 _DEFWIDTH_ = 500
 _BUTWIDTH_ = 130 
 
-
-
+import multiprocessing as mp
 
 
 ### -- BEGIN OF PROGRESS DIALOG --
-
-from threading import Thread
 from wx.lib.pubsub import pub
+#from threading import Thread
 
-
-class TestThread(Thread):
-    """Test Worker Thread Class."""
- 
-    #----------------------------------------------------------------------
-    def __init__(self):
-        """Init Worker Thread Class."""
-        Thread.__init__(self)
-        self.start()    # start the thread
- 
-    #----------------------------------------------------------------------
-    def run(self):
-        """Run Worker Thread."""
-        # This is the code executing in the new thread.
-        for i in range(20):
-            wx.Sleep(1)
-            wx.CallAfter(pub.sendMessage, "update", msg="")
+#   class TestThread(Thread):
+#       """Test Worker Thread Class."""
+#    
+#       #----------------------------------------------------------------------
+#       def __init__(self):
+#           """Init Worker Thread Class."""
+#           Thread.__init__(self)
+#           self.start()    # start the thread
+#    
+#       #----------------------------------------------------------------------
+#       def run(self):
+#           """Run Worker Thread."""
+#           # This is the code executing in the new thread.
+#           for i in range(20):
+#               wx.Sleep(1)
+#               wx.CallAfter(pub.sendMessage, "update", msg="")
 
 
 
@@ -339,13 +336,10 @@ class MainPanel(wx.Panel):
         self.cprint()
         self.cprint("-- Directory structure creation complete --\n")
         self.cprint("** 2. Finding duplicates **\n")
-  
-
 
         # -- progress bar indicator --
         ## TestThread()
         ## p_dlg = MyProgressDialog()
-
         
         #p_dlg = wx.ProgressDialog(title='Finding Duplicates', message='Working', maximum=100, parent=None,
         #      style=wx.PD_AUTO_HIDE | wx.PD_ELAPSED_TIME) #  | wx.PD_APP_MODAL)
@@ -358,13 +352,19 @@ class MainPanel(wx.Panel):
         #   wx.Sleep(1)
         #   keepGoing = p_dlg.Update(count)
         # -- ------
-
+        
         dup_table = dup_obj.get_duplicates()        # <-- this should be on one thread
+
+        #p1 = mp.Process(target=dup_obj.get_duplicates)
+        #p1.start()
+        #self.cprint("-- Please wait until dupfinder completes --")
+        #p1.join()
+        #return
+
         ## p_dlg.Destroy() 
 
-
         #TODO. This stuff is redundant now...
-        self.srch_results_list, self.srch_sizes_list =  dup_obj.dump_duplicates_list()
+        ## self.srch_results_list, self.srch_sizes_list =  dup_obj.dump_duplicates_list()
 
 
         self.cprint("-- Duplicate listing complete --\n")

@@ -14,7 +14,7 @@ import sys
 import re 
 import os
 import os.path 
-from hashsum import md5sum, gen_hashsum, gen_partial_hashsums
+from hashsum import gen_hashsum, gen_partial_hashsums
 import hashsum 
 
 
@@ -281,7 +281,7 @@ class DuplicateFinder2:
             if (len(v) == 1): continue
 
             for f in v: 
-                hsum = md5sum(f)
+                hsum = gen_hashsum() 
                 if (hsum in self._dup_fdict): 
                     (self._dup_fdict [hsum]).append(f) 
                 else:

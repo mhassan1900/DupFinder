@@ -29,7 +29,7 @@ DEBUG = False
 
 
 
-def main2(args):
+def main(args):
     """Argument Parser & caller"""
 
     parser = argparse.ArgumentParser(description="Duplicate Finder (CMD line)") 
@@ -217,13 +217,8 @@ def colmode_srch(dup_obj):
 
     print " " * 40, "  | " 
     print '=' * 90 
-       
-
-
 
 
 if (__name__ == "__main__"):
-   #main()   
-   main2(sys.argv[1:])   
+   main(sys.argv[1:])   
    
-
