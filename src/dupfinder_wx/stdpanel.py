@@ -8,6 +8,10 @@ However, it does not need any calls to DuplicateFinder class/methods. (There is
 a generic function that is used though...)
 '''
 
+#pylint: disable=W0511
+#pylint: disable=W0702
+#pylint: disable=W0613
+
 
 # hierarchy
 # dupfinder_wxtop
@@ -15,7 +19,6 @@ a generic function that is used though...)
 # - stdpanel
 # - cmppanel (stdpanel)
 
-from DuplicateFinder import get_qual, format_size
 import os
 import os.path
 import wx
@@ -29,10 +32,11 @@ _BUTWIDTH_ = 130
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 
 class StdPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, dup_obj=None):
         wx.Panel.__init__(self, parent=parent)
 
         # variables need for non-GUI execution
+        self.dup_obj = dup_obj
 
         # These 3 are passed in from mainpanel & then maintained locally
         self.dirlist = []               # list of directories to search
@@ -219,8 +223,8 @@ class StdPanel(wx.Panel):
             sz_excess = sz_bytes*(len(vlist)-2)
             tot_excess += sz_excess
 
-            sz_f, sz_q = get_qual(sz_bytes) # size in KB, MB...
-            sze_f, sze_q = get_qual(sz_excess)   # excess in KB, MB...
+            sz_f, sz_q = self.dup_obj.get_qual(sz_bytes) # size in KB, MB...
+            sze_f, sze_q = self.dup_obj.get_qual(sz_excess)   # excess in KB, MB...
             sze_f = int(round(sze_f,0))
 
             sz_q = sz_q[0] if sz_q != '' else sz_q
@@ -237,7 +241,7 @@ class StdPanel(wx.Panel):
         self.t_summary.AppendText('Directories searched        : {}\n'.format(len(self.dirlist)))
         self.t_summary.AppendText('Directories excluded        : {}\n'.format(len(self.ignorelist)))
         self.t_summary.AppendText('Duplicate sets found        : {}\n'.format(len(self.dup_table)))
-        self.t_summary.AppendText('Total excess space used     : {}\n'.format(format_size(tot_excess,0)))
+        self.t_summary.AppendText('Total excess space used     : {}\n'.format(self.dup_obj.format_size(tot_excess,0)))
         self.t_summary.AppendText('Files selected for deletion : {}\n'.format(len(self.filesel_list)))
 
 
@@ -350,7 +354,7 @@ class StdPanel(wx.Panel):
                 os.unlink(f)
             except:
                 msg = 'Could not delete file {} for some reason!'.format(f)
-                m_dlg = wx.MessageBox(msg, caption="WARNING", style=wx.OK)
+                wx.MessageBox(msg, caption="WARNING", style=wx.OK)
                 deleted_files.remove(f)
                 continue
 

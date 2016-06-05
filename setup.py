@@ -1,22 +1,22 @@
 #!/usr/bin/env python2.7
-# Run as:
-# python setup.py install --user
+# Run as: python setup.py install --user
 
 #from distutils.core import setup   - DO NOT USE; DUMPS EVERTYHING UNDER SITE-PACKAGES & UNCLEAN INSTALL  
 
-# packages=['DupFinder'],               # don't work
-
 from setuptools import setup, find_packages
 
-setup(name='dupfinder_wx',   # best to have same names as main source file
-      # author='Mahmud Hassan',
-      # author_email='mahmud.hassan@gmail.com',
-      version='1.0.0',
-      description='Duplicate File Finder',
-      package_dir = {'': 'src'}, # /dupfinder_wx'},     
-      # packages = find_packages(exclude=('testdir',)),
-      packages = ['dupfinder_wx'],
-      scripts = ['scripts/dupfinder_gui', 'scripts/dupfinder'],
-      py_modules=['DuplicateFinder', 'hashsum'],
-                # 'find_duplicates_wxgui' , 'find_duplicates_tkgui']  # These are really scripts
+__version__ = '0.2.0'
+
+setup(
+    name = 'dupfinder',   
+    version = __version__, 
+    author = 'Mahmud Hassan',
+    author_email = 'mhassan1900@users.noreply.github.com',
+    description='Duplicate File Finder & Compare capability', 
+    scripts = ['scripts/dupfinder', 'scripts/dupfinder_gui'],
+    package_dir = {'': 'src'}, 
+    #packages = find_packages(exclude=('testdir',)),
+    py_modules = ['dupfinder', 'dupfinder_core.DuplicateFinder', 'dupfinder_core.hashsum', 
+                  'dupfinder_wx.cmppanel', 'dupfinder_wx.mainpanel', 'dupfinder_wx.stdpanel', 'dupfinder_wxtop'] 
 )
+

@@ -1,4 +1,5 @@
 """Wrapper functions for hashlib to generate hash sums on filenames"""
+#pylint: disable=W0702
 
 import sys
 import hashlib
@@ -47,7 +48,7 @@ def gen_partial_hashsum(fname, hashtype, chunksize, offset=0):
     if filename has size 67,239 bytes then, the following are equivalent (full file hashsum)
             gen_hashsum( filename )
             gen_partial_hashsum( filename, 'md5', 67239 )
-            gen_partial_hashsum( filename, 'md5', 80000 ) 
+            gen_partial_hashsum( filename, 'md5', 80000 )
             gen_partial_hashsum( filename, 'md5', 80000, -67239 )
 
     Following hashsums for first 4096 bytes are equivalent:

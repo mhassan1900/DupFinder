@@ -10,7 +10,7 @@
         dupfinder.py --gui                              # gui mode
 """
 
-from dupfinder_wx.DuplicateFinder import DuplicateFinder
+from dupfinder_core import DuplicateFinder as Dup
 from dupfinder_wxtop import guimain # needed only for gui mode
 import sys
 import argparse
@@ -74,7 +74,7 @@ def build_dupfinder(srchlist, exclist=None):
     """
 
     print "** 1. Creating file/directory structure **"
-    dup_obj = DuplicateFinder()
+    dup_obj = Dup.DuplicateFinder()
 
     if exclist != None:
         for mypath in exclist:
@@ -85,7 +85,7 @@ def build_dupfinder(srchlist, exclist=None):
         dup_obj.update(mypath)
         print "      Building structure for: ", mypath
 
-    if (DEBUG): dup_obj.dump()
+    if (DEBUG): dup_obj.dump_files()
     print "-- Directory structure creation complete --\n"
     return dup_obj
 
@@ -94,7 +94,8 @@ def stdmode_srch(dup_obj):
     """Std mode search of directories in duplicate object"""
 
     print "** 2. Finding duplicates (standard mode)**"
-    dup_table = dup_obj.get_duplicates()
+    #dup_table = dup_obj.get_duplicates()
+    dup_obj.get_duplicates()
 
     print '-' * 70
     print "  Raw table { 'md5sum1' : [sz, file1, file2, file3, ...], ... }"

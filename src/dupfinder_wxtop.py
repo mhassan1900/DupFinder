@@ -1,4 +1,5 @@
 import wx
+from dupfinder_core import DuplicateFinder as Dup
 from dupfinder_wx.stdpanel import StdPanel
 from dupfinder_wx.cmppanel import CmpPanel
 from dupfinder_wx.mainpanel import MainPanel
@@ -11,7 +12,7 @@ _DEFWIDTH_ = 600
 class MyFrame(wx.Frame):
     """Top level GUI application window"""
 
-    def __init__(self, title=None):
+    def __init__(self, title=None, dup_obj=None):
         wx.Frame.__init__(self, parent=None, title=title)
 
         # frame should always have a panel even if calls hierarchically
@@ -19,9 +20,9 @@ class MyFrame(wx.Frame):
         #  -- initUI() --
         toppanel = wx.Panel(self)
         notebook = wx.Notebook(toppanel)
-        mainpanel = MainPanel(notebook)
-        stdpanel = StdPanel(notebook)
-        cmppanel = CmpPanel(notebook)
+        mainpanel = MainPanel(notebook, dup_obj=dup_obj)
+        stdpanel = StdPanel(notebook, dup_obj=dup_obj)
+        cmppanel = CmpPanel(notebook, dup_obj=dup_obj)
 
         #  -- configureUI() --
         notebook.AddPage(mainpanel, "Main")
@@ -57,8 +58,9 @@ class MyFrame(wx.Frame):
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 def guimain():
     """Calls main GUI app routine"""
+    dup_obj = Dup.DuplicateFinder()
     app = wx.App(False)  # redirect to terminal
-    MyFrame(title="Duplicate File Finder")
+    MyFrame("Duplicate File Finder", dup_obj)
     app.MainLoop()
 
 

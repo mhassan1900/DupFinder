@@ -1,6 +1,6 @@
 # -*- mode: python -*-
-a = Analysis(['scripts/dupfinder_gui.py'],
-             pathex=['/Users/mahmud/program/pystuff/file_utils'],
+a = Analysis(['scripts/dupfinder'],
+             pathex=['/Users/mahmud/program/pystuff/DupFinder'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)

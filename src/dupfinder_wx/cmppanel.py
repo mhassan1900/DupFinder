@@ -19,7 +19,7 @@ import os.path
 import wx
 import re
 from stdpanel import StdPanel
-from DuplicateFinder import get_qual, format_size
+# from DuplicateFinder import get_qual, format_size
 
 _DEFWIDTH_ = 500
 _BUTWIDTH_ = 130
@@ -151,7 +151,7 @@ class CmpPanel(StdPanel):
         root1 = re.sub(r'(.+)[\/\\]$', r'\1', self.dirlist[0]) # strip of trailing / or \
         root2 = re.sub(r'(.+)[\/\\]$', r'\1', self.dirlist[1]) # strip of trailing / or \
         root1_list, root2_list =  [], []
-        sz_list, sze_list = [], []          # size/file list and excess size/duplicate filel list
+        sz_list = []           # size/file list
         self.t_dir1.SetValue(root1)
         self.t_dir2.SetValue(root2)
 
@@ -165,7 +165,7 @@ class CmpPanel(StdPanel):
             sz_excess = sz_bytes*(len(vlist)-2)
             tot_excess += sz_excess
 
-            sz_f, sz_q = get_qual(sz_bytes) # size in KB, MB...
+            sz_f, sz_q = self.dup_obj.get_qual(sz_bytes) # size in KB, MB...
             ##sze_f, sze_q = get_qual(sz_excess)   # excess in KB, MB...
             ##sze_f = int(round(sze_f,0))
 
@@ -218,7 +218,7 @@ class CmpPanel(StdPanel):
         self.t_summary.AppendText('Directories searched   : {}\n'.format(len(self.dirlist)) )
         self.t_summary.AppendText('Directories excluded   : {}\n'.format(len(self.ignorelist)) )
         self.t_summary.AppendText('Duplicate sets found   : {}\n'.format(len(self.dup_table)) )
-        self.t_summary.AppendText('Total excess space used: {}\n'.format(format_size(tot_excess,0)) )
+        self.t_summary.AppendText('Total excess space used: {}\n'.format(self.dup_obj.format_size(tot_excess,0)) )
 
 
     # -------------------------- Widget Actions  ------------------------- #

@@ -1,1 +1,2 @@
-../src/dupfinder_wxtop.py
+import dupfinder 
+dupfinder.guimain()

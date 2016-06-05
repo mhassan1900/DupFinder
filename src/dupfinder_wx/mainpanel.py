@@ -2,20 +2,22 @@
 
 import os
 import os.path
-import DuplicateFinder as Dup
 import wx
-import multiprocessing as mp
+#import multiprocessing as mp
 
 _DEFWIDTH_ = 500
 _BUTWIDTH_ = 130
 
+#pylint: disable=W0511
+#pylint: disable=W0613
+#pylint: disable=R0902,R0914
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # MainPanel class definition
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 class MainPanel(wx.Panel):
 
-    def __init__(self, parent, stdpanel=None, cmppanel=None):
+    def __init__(self, parent, stdpanel=None, cmppanel=None, dup_obj=None):
         '''Custom panel that has most of the functionality of the DupFinder GUI.
         It expects to pass data to a stdpanel & cmppanel for display & processing.
         These two are needed during initialization OR set later on via set_stdview()
@@ -32,6 +34,7 @@ class MainPanel(wx.Panel):
 
         self.stdpanel = stdpanel
         self.cmplanel = cmppanel
+        self.dup_obj = dup_obj
 
         self.initUI()                   # create all the widgets
         self.configureUI()              # configures widgets additionally
@@ -232,28 +235,29 @@ class MainPanel(wx.Panel):
             self.cprint('** Standard View Mode **\n')
 
         self.cprint('** 1. Creating file/directory structure **\n')
-        dup_obj = Dup.DuplicateFinder()
+        #dup_obj = Dup.DuplicateFinder()
 
         for p in self.ignorelist:       #TODO. Check if used
             ## self.cprint ("p => " + p + "\n")
             ## if os.path.exists(p):    # should always exist...
             self.cprint('   Ignoring everthing under: {}\n'.format(p)) #  os.path.abspath(p) + "\n")
-            dup_obj.add2ignore(os.path.abspath(p))
+            self.dup_obj.add2ignore(os.path.abspath(p))
 
         self.cprint()
         self.cprint( 'INFO. matched dirs (relative) to exclude:' )
-        self.cprint( repr(dup_obj._ignorematching) +'\n' )
+        print self.dup_obj
+        self.cprint( repr(self.dup_obj._ignorematching) +'\n' )
 
         # go by what is in dirlist NOT what is displayed    # TODO
         for p in self.dirlist:
-            dup_obj.update(p)
+            self.dup_obj.update(p)
             self.cprint('   Building structure for: {}'.format(p))
 
         self.cprint()
         self.cprint("-- Directory structure creation complete --\n")
         self.cprint("** 2. Finding duplicates **\n")
 
-        dup_table = dup_obj.get_duplicates()        # <-- this should be on one thread
+        dup_table = self.dup_obj.get_duplicates()        # <-- this should be on one thread
 
         #p1 = mp.Process(target=dup_obj.get_duplicates)
         #p1.start()

@@ -9,6 +9,8 @@ from hashsum import gen_hashsum, gen_partial_hashsums #pylint: disable-msg=E0611
 
 _search_type_ = 1   # set to 2 for experimental type
 
+#pylint: disable=W0511
+#pylint: disable=W0702
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # DuplicateFinder class definition
@@ -60,6 +62,10 @@ class DuplicateFinder:
         else:
             self._root_dirlist = ['dname']
             self.update (dname)
+
+        # convenience function refs
+        self.get_qual = get_qual
+        self.format_size = format_size
 
     # ---------------------------------------------------------------- #
     def add2ignore (self, dname):
@@ -457,9 +463,9 @@ def search_duplicates(*dirpaths):
     dupobj.dump_files()
 
     if _search_type_ == 2:
-        dupobj._find_dup2()
+        dupobj._find_dup2()     #pylint: disable=W0212
     else:
-        dupobj._find_dup()
+        dupobj._find_dup()      #pylint: disable=W0212
     dupobj.dump_duplicates()
 
 
