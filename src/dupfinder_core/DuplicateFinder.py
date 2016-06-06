@@ -3,7 +3,7 @@ from __future__ import division
 import sys
 import re
 import os
-import os.path
+import os.path as osp
 import hashsum
 from hashsum import gen_hashsum, gen_partial_hashsums #pylint: disable-msg=E0611
 
@@ -55,7 +55,7 @@ class DuplicateFinder:
         self._dup_fdict = dict()
         self._found_dup = 0
         self._ignorelist = []   # explicit list of fully qualified directory name to ignore
-        self._ignorematching = set( ['.svn', '.git', '.DS_Store'] ) # list of matching dirs to ignore by default
+        self._ignorematching = set( ['.svn', '.git', '.DS_Store'] ) # list of matching dirs or files to ignore by default
 
         if (dname == None):
             self._root_dirlist = []
@@ -72,7 +72,7 @@ class DuplicateFinder:
         """Add to list of directories with full path name to ignore"""
         if dname.strip() == '':
             return
-        dname_full = os.path.abspath(dname.strip())
+        dname_full = osp.abspath(dname.strip())
         if dname_full not in self._ignorelist:
             self._ignorelist.append(dname_full)
 
@@ -299,15 +299,18 @@ class DuplicateFinder:
         """Returns dictionary of data structure"""
 
         ## print 'ignorelist', self._ignorelist # DEBUG
-        cdir = os.path.abspath(cdir) ## print 'looking at ', absroot # DEBUG
+        cdir = osp.abspath(cdir) ## print 'looking at ', absroot # DEBUG
 
         for root, dirs, files in os.walk( cdir ):
-            root_tokens = set( re.split(r'[\/\\]', os.path.dirname(root) ) )
-            if len(set(root_tokens).intersection(self._ignorematching)) > 0:
-                ## print '--> matched', set(root_tokens).intersection(self._ignorematching)
+            if osp.basename(root) in self._ignorematching:
                 continue
 
-            absroot = os.path.abspath(root) ## print 'looking at ', absroot # DEBUG
+            root_tokens = set( re.split(r'[\/\\]', osp.dirname(root) ) )
+            if len(set(root_tokens).intersection(self._ignorematching)) > 0:
+                continue
+
+            #TODO. Clean up this section for ignore_files
+            absroot = osp.abspath(root) ## print 'looking at ', absroot # DEBUG
             ignore_files = False
             for iroot in self._ignorelist:
                 if absroot.startswith(iroot):
@@ -317,9 +320,11 @@ class DuplicateFinder:
             if ignore_files: continue
 
             for f in files:
-                filename = os.path.join(root, f)
+                if f in self._ignorematching:
+                    continue
+                filename = osp.join(root, f)
                 try:
-                    filesize = os.path.getsize(filename)
+                    filesize = osp.getsize(filename)
                 except: # expect OSError
                     print "WARNING. Problem getting file size; file ", \
                         filename, " will not be included"
@@ -370,7 +375,7 @@ def is_identical(fname1, fname2, hashtype='md5'):
 
     errs = 0
     try:
-        fsize1 = os.path.getsize(fname1)
+        fsize1 = osp.getsize(fname1)
     except OSError as e:
         print e
         errs += 1
@@ -379,7 +384,7 @@ def is_identical(fname1, fname2, hashtype='md5'):
         errs += 1
 
     try:
-        fsize2 = os.path.getsize(fname2)
+        fsize2 = osp.getsize(fname2)
     except OSError as e:
         print e
         errs += 1
@@ -446,6 +451,9 @@ def group_identical(fsize, hashtype, *fnames):  #pylint: disable-msg=R0914
 
     return newgroups
 
+
+
+
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # Quick test environment
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
@@ -453,7 +461,7 @@ def search_duplicates(*dirpaths):
 
     print "-" * 60
     print "Running duplicate file finder across followind directories"
-    dirpaths = [os.path.abspath(cdir) for cdir in dirpaths]
+    dirpaths = [osp.abspath(cdir) for cdir in dirpaths]
     for d in dirpaths: print '  ', d
     print "-" * 60
 

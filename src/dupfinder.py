@@ -16,6 +16,7 @@ from dupfinder_wxtop import guimain # needed only for gui mode
 import sys
 import argparse
 import re
+import os.path as osp
 
 from version import __version__
 DEBUG = False
@@ -61,7 +62,7 @@ def main(args):
         for p in parsed_args.exclist: print ' ', p
 
     dup_obj = build_dupfinder(parsed_args.srchlist, parsed_args.exclist)
-    print 'INFO. default matched dirs to exclude:'
+    print 'INFO. default matched names to exclude:'
     for p in dup_obj._ignorematching: print ' ', p
 
     if parsed_args.column:    # column mode
@@ -114,92 +115,76 @@ def stdmode_srch(dup_obj):
     logs, sizes = dup_obj.dump_duplicates_list()
     for l in logs: print l
 
-    #print '*' * 50     # for debug
-    #print dup_table    # for debug
-
 
 # ------------------------------------------------------------------------- #
 def colmode_srch(dup_obj):
-    """Column mode search of directories in duplicate object"""
+    """Column mode search of directories in duplicate object. Displays
+         ======================
+         root1     |    root2
+         ======================
+         file1     |    filea
+         file2     |
+                   |
+         file3     |    fileb
+                   |    filec
+                   |
+         ======================
+    """
 
     print "** 2. Finding duplicates (column mode)**"
 
-    # start the more exhaustive search
-    # data-structure conversion routine
-    # ----------------------------------------
-    root1 = dup_obj._root_dirlist[0]
-    root2 = dup_obj._root_dirlist[1]
+    root1 = dup_obj._root_dirlist[0] #pylint: disable=W0212
+    root2 = dup_obj._root_dirlist[1] #pylint: disable=W0212
+    absroot1, absroot2 = osp.abspath(root1), osp.abspath(root2)
+    dup_table = dup_obj.get_duplicates() # already skips matching duplicates
 
     # each of these will store a list of lists
-    root1_list = []
-    root2_list = []
+    root1_list, root2_list = [], []
 
-    dup_table = dup_obj.get_duplicates()
+    _matches_rootdir = lambda f, d: f.startswith(d)
+    maxlen = len(root1)
 
     for flist in dup_table.values():
-        # print "flist => ", flist - all files in list have same content
         flist.pop(0)
-        flist1 =  []
-        flist2 =  []
-        for fname in flist:
-            if re.search(r'/.svn', fname):       # skip ".svn" files
+        flist1, flist2 = [], []
+        for fname in flist:     # fname should be full (abs)path
+            if _matches_rootdir(fname, absroot1):
+                fsuffix = fname.replace(absroot1, '')
+                flist1.append(fsuffix[1:])
+                if len(fsuffix[1:]) > maxlen: maxlen = len(fsuffix[1:])
+            elif _matches_rootdir(fname, absroot2): # superfluous step for safety
+                fsuffix = fname.replace(absroot2, '')
+                flist2.append(fsuffix[1:])
+            else:
+                print 'WARNING. Cannot place {} in either {} or {}'.format(fname,root1,root2)
                 continue
-            #if re.search(r'/.git', fname):       # skip ".git" files
-            #    continue
-            if re.search(root1, fname):
-                fname = re.sub(root1 + '/', '', fname)
-                flist1.append(fname)
-            if re.search(root2, fname):
-                fname = re.sub(root2 + '/', '', fname)
-                flist2.append(fname)
-
         # build a pair of lists fore each hashsum
         if (len(flist1) + len(flist2)) < 2:  # remove empty or single-elem lists
             continue
         root1_list.append( flist1 )
         root2_list.append( flist2 )
 
-    # print "DIR1 LIST len", len(root1_list), root1_list
-    # print "DIR2 LIST len", len(root2_list), root2_list
 
-    # display routine
-    # root1_list & root2_list have everything
-    # -------------------------------------
-
-    """
-     prints in following format
-     ======================
-     root1     |    root2
-     ======================
-     file1     |    filea
-     file2     |
-               |
-     file3     |    fileb
-               |    filec
-               |
-     ======================
-    """
-
-    spc = ' ' * (40 - len(root1))
-    print '=' * 90
-    print root1, spc, " | \t", root2
-    print '=' * 90
+    # display routine - root1_list & root2_list have everything
+    linelen = maxlen + len(root2) + 3
+    print '=' * linelen
+    print '{0:{1}s} | {2:}'.format(root1, maxlen, root2)
+    print '=' * linelen
+    i = 0
     for (flist1,flist2) in zip(root1_list,root2_list):
         # flist1 and flist2 contain lists of identical files
         # but flist1 files may not match flist2 files
         flist1 = sorted (flist1)
         flist2 = sorted (flist2)
         # the map operator puts in None for unequal length lists
-        print " " * 40, "  | "
-        # print "-" * 90
         for (f1,f2) in map(None, flist1,flist2):
             if (f1 == None): f1 = ' '
             if (f2 == None): f2 = ' '
-            spc = ' ' * (40 - len(f1))
-            print  f1 , spc,  " | \t", f2
-
-    print " " * 40, "  | "
-    print '=' * 90
+            print  '{0:{1}s} | {2:}'.format(f1, maxlen, f2)
+        i += 1
+        if i < len(root1_list):
+            print '-' * maxlen, '+', '-'* len(root2)
+    print '=' * linelen
 
 
 if (__name__ == "__main__"):
