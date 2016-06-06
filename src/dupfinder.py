@@ -3,12 +3,13 @@
    Use help or docstrings to get more detailed documentation.
 
     Usage:
-        dupfinder.py [-h] [-d SRCHLIST] [-e EXCLIST] [-c]
+        dupfinder [-h] [-d SRCHLIST] [-e EXCLIST] [-c] [-g] [-v]
     Examples:
-        dupfinder.py -d dir1 -d dir2 -d dir3 -e dir2_5  # standard mode
-        dupfinder.py -d dir1 -d dir2 --column           # column mode
-        dupfinder.py --gui                              # gui mode
+        dupfinder -d dir1 -d dir2 -d dir3 -e dir2_5  # standard mode
+        dupfinder -d dir1 -d dir2 --column           # column mode
+        dupfinder --gui                              # gui mode
 """
+
 
 from dupfinder_core import DuplicateFinder as Dup
 from dupfinder_wxtop import guimain # needed only for gui mode
@@ -16,6 +17,7 @@ import sys
 import argparse
 import re
 
+from version import __version__
 DEBUG = False
 
 # ------------------------------------------------------------------------- #
@@ -32,8 +34,14 @@ def main(args):
                help="Run in column mode. Note that -d should be specified exactly twice in this mode")
     parser.add_argument("-g", "--gui", default=False, action='store_true',
                help="Run in gui mode. Other options are not needed when gui mode is specified")
+    parser.add_argument("-v", "--version", dest='version', default=False, action='store_true',
+               help="Prints out the version of dupfinder")
 
     parsed_args = parser.parse_args(args)
+
+    if parsed_args.version:
+        print 'DupFinder Version', __version__
+        return
 
     if parsed_args.gui:         # gui mode
         guimain()
@@ -53,7 +61,7 @@ def main(args):
         for p in parsed_args.exclist: print ' ', p
 
     dup_obj = build_dupfinder(parsed_args.srchlist, parsed_args.exclist)
-    print 'INFO. default matched dirs (relative) to exclude:'
+    print 'INFO. default matched dirs to exclude:'
     for p in dup_obj._ignorematching: print ' ', p
 
     if parsed_args.column:    # column mode

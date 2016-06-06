@@ -55,7 +55,7 @@ class DuplicateFinder:
         self._dup_fdict = dict()
         self._found_dup = 0
         self._ignorelist = []   # explicit list of fully qualified directory name to ignore
-        self._ignorematching = set( ['.svn', '.git'] ) # list of matching dirs to ignore by default
+        self._ignorematching = set( ['.svn', '.git', '.DS_Store'] ) # list of matching dirs to ignore by default
 
         if (dname == None):
             self._root_dirlist = []

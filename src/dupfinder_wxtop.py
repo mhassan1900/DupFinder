@@ -3,6 +3,7 @@ from dupfinder_core import DuplicateFinder as Dup
 from dupfinder_wx.stdpanel import StdPanel
 from dupfinder_wx.cmppanel import CmpPanel
 from dupfinder_wx.mainpanel import MainPanel
+from version import __version__
 
 _DEFWIDTH_ = 600
 

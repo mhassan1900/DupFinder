@@ -244,7 +244,7 @@ class MainPanel(wx.Panel):
             self.dup_obj.add2ignore(os.path.abspath(p))
 
         self.cprint()
-        self.cprint( 'INFO. matched dirs (relative) to exclude:' )
+        self.cprint( 'INFO. matched dirs to exclude:' )
         print self.dup_obj
         self.cprint( repr(self.dup_obj._ignorematching) +'\n' )
 
