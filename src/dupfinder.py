@@ -143,7 +143,7 @@ def colmode_srch(dup_obj):
 
     _matches_rootdir = lambda f, d: f.startswith(d)
     maxlen = len(root1)
-    root2len = min(40, len(root2))
+    root2len = max(40, len(root2))
 
     for flist in dup_table.values():
         flist.pop(0)
