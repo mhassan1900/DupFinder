@@ -143,6 +143,7 @@ def colmode_srch(dup_obj):
 
     _matches_rootdir = lambda f, d: f.startswith(d)
     maxlen = len(root1)
+    root2len = min(40, len(root2))
 
     for flist in dup_table.values():
         flist.pop(0)
@@ -166,7 +167,7 @@ def colmode_srch(dup_obj):
 
 
     # display routine - root1_list & root2_list have everything
-    linelen = maxlen + len(root2) + 3
+    linelen = maxlen + root2len + 3
     print '=' * linelen
     print '{0:{1}s} | {2:}'.format(root1, maxlen, root2)
     print '=' * linelen
@@ -183,7 +184,7 @@ def colmode_srch(dup_obj):
             print  '{0:{1}s} | {2:}'.format(f1, maxlen, f2)
         i += 1
         if i < len(root1_list):
-            print '-' * maxlen, '+', '-'* len(root2)
+            print '-' * maxlen, '+', '-'* root2len
     print '=' * linelen
 
 
