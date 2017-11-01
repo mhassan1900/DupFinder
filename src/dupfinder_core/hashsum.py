@@ -1,5 +1,5 @@
 """Wrapper functions for hashlib to generate hash sums on filenames"""
-#pylint: disable=W0702
+#pylint: disable=bare-except
 
 import sys
 import hashlib

@@ -3,7 +3,7 @@
    Use help or docstrings to get more detailed documentation.
 
     Usage:
-        dupfinder [-h] [-d SRCHLIST] [-e EXCLIST] [-c] [-g] [-v]
+        dupfinder [-h] [-d SEARCHLIST] [-e EXCLUDELIST] [-c] [-g] [-v]
     Examples:
         dupfinder -d dir1 -d dir2 -d dir3 -e dir2_5  # standard mode
         dupfinder -d dir1 -d dir2 --column           # column mode
@@ -15,7 +15,6 @@ from dupfinder_core import DuplicateFinder as Dup
 from dupfinder_wxtop import guimain # needed only for gui mode
 import sys
 import argparse
-import re
 import os.path as osp
 
 from version import __version__
