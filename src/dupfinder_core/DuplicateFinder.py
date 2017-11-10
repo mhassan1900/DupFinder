@@ -9,8 +9,9 @@ from hashsum import gen_hashsum, gen_partial_hashsums #pylint: disable-msg=E0611
 
 _search_type_ = 1   # set to 2 for experimental type
 
-#pylint: disable=W0511
-#pylint: disable=W0702
+#pylint: disable=fixme
+#pylint: disable=bare-except
+#pylint: disable=too-many-instance-attributes
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # DuplicateFinder class definition
@@ -96,7 +97,7 @@ class DuplicateFinder:
         }"""
 
         print "-- File structure --"
-        for k,vlist in self._file_dict.items():
+        for k,vlist in self._file_dict.iteritems():
             print '{:>20d} \t{}'.format(k, vlist[0])
             for v in vlist[1:]:
                 print '{:20s} \t{}'.format(' ', v)
@@ -142,79 +143,15 @@ class DuplicateFinder:
         print
 
     # ---------------------------------------------------------------- #
-    def dump_duplicates_log (self):
-        """Displays duplicate files along with size in bytes, but returns
-        the info into a 'log' list as opposed to the STDOUT"""
-
-        logs = []
-        logs.append("Duplicate files --")
-        excess_total = 0
-
-        if len(self._dup_fdict) == 0:
-            logs.append( "No duplicates found" )
-            logs.append("Total excess space used: 0 bytes")
-            logs.append('')
-            return
-
-        for k,vlist in self._dup_fdict.items():
-            excess_bytes = (len(vlist) - 2) * vlist[0]
-            excess_total +=  excess_bytes
-            logs.append( '{:>20d} \t{} bytes each'.format( k, vlist[0] ) )
-            logs.append( '{:>20d} \t{}'.format( excess_bytes, "bytes excess" ) )
-            for v in vlist[1:]:
-                logs.append( '{:>20s} \t{}'.format( ' ', v ) )
-
-        excess_total, qual = get_qual(excess_total)
-        logs.append("-" * 40)
-        logs.append("Total excess space used: {} {}Bytes".format( excess_total , qual))
-        logs.append('')
-
-        return logs
-
-    # ---------------------------------------------------------------- #
-    def dump_duplicates_log_orig (self, entry=1):
-        """Displays duplicate files along with size in bytes, but returns
-        the info into a 'log' list as opposed to the STDOUT"""
-
-        logs = []
-        logs.append("Duplicate files --")
-        maxlen =  15
-        excess_total = 0
-
-        for k,v in self._dup_fdict.iteritems():
-            if (maxlen < len(str(k))):
-                maxlen = len(str(k)) + 5
-            spc = ' '*(maxlen - len(str(k)))
-
-            excess_bytes = (len(v) - 2) * v[0]
-            excess_total +=  excess_bytes
-
-            if (entry == 1):
-                logs.append( k + spc + v + " excess bytes: " + str(excess_bytes) )
-            else:
-                logs.append( k + spc +  str(v[0]) + " bytes each")
-                logs.append( ' ' * (maxlen + 3) + str(excess_bytes) + " bytes excess")
-                for f in v[1:]:
-                    logs.append( ' ' * (maxlen + 3) + f)
-
-        logs.append("-" * 40)      # now compute total excess space
-
-        excess_total, qual = get_qual(excess_total)
-        logs.append("Total excess space used: "+ str(excess_total)  + qual+ "bytes")
-        logs.append('')
-
-        return logs
-
-    # ---------------------------------------------------------------- #
     def dump_duplicates_list (self):
         """Displays duplicate files along with size in bytes, in list format
         primarily for gui use"""
 
         logs, sizes = [], []
-        maxlen =  15
+        # maxlen =  15
         excess_total = 0
 
-        for k,v in self._dup_fdict.iteritems():
+        for _,v in self._dup_fdict.iteritems():
             excess_bytes = (len(v) - 2) * v[0]
             excess_total +=  excess_bytes
 
@@ -301,7 +238,7 @@ class DuplicateFinder:
         ## print 'ignorelist', self._ignorelist # DEBUG
         cdir = osp.abspath(cdir) ## print 'looking at ', absroot # DEBUG
 
-        for root, dirs, files in os.walk( cdir ):
+        for root, dirs, files in os.walk( cdir ): #pylint: disable=unused-variable
             if osp.basename(root) in self._ignorematching:
                 continue
 
@@ -336,7 +273,7 @@ class DuplicateFinder:
                 elif (filesize in self._file_dict):
                     (self._file_dict[filesize]).append (filename)
                 else:
-                    self._file_dict [filesize] = [filename]
+                    self._file_dict[filesize] = [filename]
 
 
 #<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
@@ -443,7 +380,7 @@ def group_identical(fsize, hashtype, *fnames):  #pylint: disable-msg=R0914
 
     newgroups = []    # [(fsize, hsum, flist[]), (...), ... (...)]
 
-    for i, g in enumerate(fgroups):
+    for g in fgroups: # for i, g in enumerate(fgroups):
         glist = g[2:]
         hsums = [gen_hashsum(fname, hashtype) for fname in glist]
         for h, f in zip(hsums, glist):

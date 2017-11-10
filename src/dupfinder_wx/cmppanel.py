@@ -166,18 +166,7 @@ class CmpPanel(StdPanel):
             tot_excess += sz_excess
 
             sz_f, sz_q = self.dup_obj.get_qual(sz_bytes) # size in KB, MB...
-            ##sze_f, sze_q = get_qual(sz_excess)   # excess in KB, MB...
-            ##sze_f = int(round(sze_f,0))
-
             sz_q = sz_q[0] if sz_q != '' else sz_q
-            ##sze_q = sze_q[0] if sze_q != '' else sze_q
-
-            ##sz_bytes_str = '## {} {}B x {}'.format(sz_f, sz_q, len(vlist)-1)
-            ##sz_excess_str = '({} {}B excess)'.format(sze_f, sze_q)
-
-            ##self.clbx_results.Append('{}{:>40s}'.format(sz_bytes_str, sz_excess_str))
-            ##for v in vlist[1:]:
-            ##    self.clbx_results.Append('    {}'.format(v))
 
             ## -- new stuff for compare mode --
             flist1, flist2 =  [], []
