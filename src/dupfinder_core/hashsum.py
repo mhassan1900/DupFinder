@@ -113,9 +113,10 @@ def gen_partial_hashsums(fname, hashtype="md5", chunksize=SMALL_CHUNK, fsize=Non
     fin.seek(-chunksize, 2)         # tail portion
     contents3 = fin.read(chunksize)
 
-    hsum1 = getattr(hashlib, hashtype)(contents1)
-    hsum2 = getattr(hashlib, hashtype)(contents2)
-    hsum3 = getattr(hashlib, hashtype)(contents3)
+    hfunc = getattr(hashlib, hashtype)
+    hsum1 = hfunc(contents1)
+    hsum2 = hfunc(contents2)
+    hsum3 = hfunc(contents3)
     fin.close()
     return hsum1.hexdigest(), hsum2.hexdigest(), hsum3.hexdigest()
 

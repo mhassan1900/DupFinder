@@ -2,7 +2,6 @@
 #pylint: disable=fixme
 #pylint: disable=too-many-locals
 
-
 """Script to generate info on duplicate files. This version is written in python (2.6+).
    Use help or docstrings to get more detailed documentation.
 
@@ -16,15 +15,17 @@
 """
 
 
-from dupfinder_core import DuplicateFinder
-from dupfinder_core import dupdisp
-from dupfinder_wxtop import guimain # needed only for gui mode
+import logging
 import sys
 import argparse
 
+from dupfinder_core import DuplicateFinder
+from dupfinder_core import dupdisp
+from dupfinder_wxtop import guimain # needed only for gui mode
 from version import __version__
-DEBUG = False
 
+DEBUG = False
+_log = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------- #
 #TODO. Implement ignorepatlist
@@ -118,4 +119,5 @@ def main(args):
 
 
 if (__name__ == "__main__"):
+    logging.basicConfig(level=logging.INFO)
     main(sys.argv[1:])
