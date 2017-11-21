@@ -15,7 +15,11 @@ DEBUG = False
 
 # ------------------------------------------------------------------------- #
 def stdmode_srch(dup_obj):
-    """Std mode search of directories in duplicate object"""
+    """Std mode search of directories in duplicate object
+        dup_obj (DuplicateFinder): Object that is passed in to report duplicates 
+
+        Returns: None 
+    """
 
     print "** 2. Finding duplicates (standard mode)**"
     dup_obj.get_duplicates()
