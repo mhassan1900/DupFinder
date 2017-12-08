@@ -4,7 +4,7 @@ project=dupfinder
 save_lint=n
 
 all: 
-	@echo "Choose from following targets <lint|install|uninstall||clean" 
+	@echo "Choose from following targets lint|install|uninstall|clean" 
 
 lint:
 	cd src && pylint --rcfile ../.pylintrc $(project) -f colorized  --files-output=$(save_lint) 
