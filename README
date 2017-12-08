@@ -3,13 +3,13 @@ It uses hashsum signatures today, but may use some other techniques as well in t
 
 Features
 --------
-1. Find and display duplicates from a list of directories.
-2. In compare mode, finds duplicates from exactly two directories, and displays in two columns files that are duplicate. 
-2. Display disk space taken up by each duplicate, as well as aggregate space.
-3. Exclude certain directories from search or reporting [.git, .svn excluded by default].
-4. Exclude certain filename patterns from being considered. 
-5. In GUI mode, interactively select files for deletion, with confirmation. 
-6. In GUI mode, interactively select and open files for viewing [OS dependent]. 
+    1. Find and display duplicates from a list of directories.
+    2. In compare mode, finds duplicates from exactly two directories, and displays in two columns files that are duplicate. 
+    2. Display disk space taken up by each duplicate, as well as aggregate space.
+    3. Exclude certain directories from search or reporting [.git, .svn excluded by default].
+    4. Exclude certain filename patterns from being considered. 
+    5. In GUI mode, interactively select files for deletion, with confirmation. 
+    6. In GUI mode, interactively select and open files for viewing [OS dependent]. 
 
 
 OS Support
