@@ -20,6 +20,7 @@ setup(
     scripts = ['scripts/dupfinder', 'scripts/dupfinder_gui'],
     package_dir = {'': 'src'},
     #packages = find_packages(exclude=('testdir',)),
-    py_modules = ['dupfinder', 'dupfinder_core.DuplicateFinder', 'dupfinder_core.hashsum', 'version',
-                  'dupfinder_wx.cmppanel', 'dupfinder_wx.mainpanel', 'dupfinder_wx.stdpanel', 'dupfinder_wxtop']
+    py_modules = ['dupfinder', 'version', 'dupfinder_wxtop',
+        'dupfinder_core.DuplicateFinder', 'dupfinder_core.dupdisp', 'dupfinder_core.hashsum', 
+        'dupfinder_wx.cmppanel', 'dupfinder_wx.mainpanel', 'dupfinder_wx.stdpanel'] 
 )
