@@ -1,5 +1,5 @@
 Use Dupfinder to find duplicate files (via command line or desktop GUI) from a given set of directories. 
-It uses hashsum signatures today, but may use some other techniques as well in the future.
+It uses a combination of file sizes and hashsum signatures today to detect and report exact duplicates. 
 
 Features
 --------
@@ -22,11 +22,12 @@ OS Support
 Execution
 ---------
 Preferred approach:
-    1. Install (into user directory) or root application location, and type:
+    Install (into user directory) or root application location, and type:
         % dupfinder                 # Shows help and options
         % dupfinder -g              # Brings up GUI 
 
-    2. There are separate scripts included for GUI & command line execution:   
+Alternate method:
+    There are separate scripts included for GUI & command line execution:   
         % scripts/dupfinder           
         % scripts/dupfinder_gui       
 
