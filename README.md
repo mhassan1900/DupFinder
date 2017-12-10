@@ -30,24 +30,25 @@ Screenshots
 
 Execution
 ---------
-Preferred approach:
-    Install (into user directory) or root application location, and type:
-        % dupfinder                             # Shows help and options
-        % dupfinder -d testcases/sample_files   # Run on provided sample
-        % dupfinder -g                          # Brings up GUI
-
-Alternate method:
-    There are separate scripts included for GUI & command line execution:   
-        % ./scripts/dupfinder           
-        % ./scripts/dupfinder -d testcases/sample_files   
-        % ./scripts/dupfinder_gui       
+- Preferred approach. Install (into user directory) or root application location, and type:
+```
+dupfinder                             # Shows help and options
+dupfinder -d testcases/sample_files   # Run on provided sample
+dupfinder -g                          # Brings up GUI
+```
+- Alternate method. There are separate scripts included for GUI & command line execution:   
+```
+  ./scripts/dupfinder
+  ./scripts/dupfinder -d testcases/sample_files
+  ./scripts/dupfinder_gui
+```
 
 
 Installation
 ------------
-% make install # this will install the scripts under user's site-packages directory by default
+`make install` # this will install the scripts under user's site-packages directory by default.
 
-Type "make" by itself for more options
+Type `make` by itself for more options
 
 
 Dependencies
