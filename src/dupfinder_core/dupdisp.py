@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #pylint: disable=fixme
 #pylint: disable=too-many-locals
+#pylint: disable=protected-access
+#pylint: disable=bad-builtin
 
 """
 This module is responsible for displaying duplicates in an appropriate manner.
@@ -16,19 +18,14 @@ DEBUG = False
 # ------------------------------------------------------------------------- #
 def stdmode_srch(dup_obj):
     """Std mode search of directories in duplicate object
-        dup_obj (DuplicateFinder): Object that is passed in to report duplicates 
+        dup_obj (DuplicateFinder): Object that is passed in to report duplicates
 
-        Returns: None 
+        Returns: None
     """
 
     print "** 2. Finding duplicates (standard mode)**"
     dup_obj.get_duplicates()
 
-    print '-' * 70
-    print "  Raw table { 'md5sum1' : [sz, file1, file2, file3, ...], ... }"
-    print '-' * 70
-
-    # NOTE. There is a big BUG in dump_duplicates(0) call!!
     logs, _ = dup_obj.dump_duplicates_list()
     for l in logs: print l
 
@@ -50,8 +47,8 @@ def colmode_srch(dup_obj):
 
     print "** 2. Finding duplicates (column mode)**"
 
-    root1 = dup_obj._root_dirlist[0] #pylint: disable=W0212
-    root2 = dup_obj._root_dirlist[1] #pylint: disable=W0212
+    root1 = dup_obj._root_dirlist[0]
+    root2 = dup_obj._root_dirlist[1]
     absroot1, absroot2 = osp.abspath(root1), osp.abspath(root2)
     dup_table = dup_obj.get_duplicates() # already skips matching duplicates
 
