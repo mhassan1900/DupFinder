@@ -22,9 +22,9 @@ OS Support
 Screenshots
 -----------
 
-![GUI Mode Example](https://github.com/mhassan1900/DupFinder/docs/gui-example.png "GUI Example")
+![GUI Mode Example] (https://raw.githubusercontent.com/mhassan1900/DupFinder/master/docs/gui-example.png "GUI Example")
 
-![Command Line Usage](https://github.com/mhassan1900/DupFinder/docs/cmd-usage.png "CMD Line Usage")
+![Command Line Usage](https://raw.githubusercontent.com/mhassan1900/DupFinder/master/docs/cmd-usage.png "CMD Line Usage")
 
 
 Execution
