@@ -1,2 +1,2 @@
-import dupfinder 
+import .dupfinder 
 dupfinder.guimain()

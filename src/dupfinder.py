@@ -2,6 +2,7 @@
 #pylint: disable=fixme
 #pylint: disable=too-many-locals
 
+
 """Script to generate info on duplicate files. This version is written in python (2.6+).
    Use help or docstrings to get more detailed documentation.
 
@@ -21,7 +22,7 @@ import argparse
 
 from dupfinder_core import DuplicateFinder
 from dupfinder_core import dupdisp
-from dupfinder_wxtop import guimain # needed only for gui mode
+# from dupfinder_wxtop import guimain # needed only for gui mode
 from version import __version__
 
 DEBUG = False
@@ -38,20 +39,20 @@ def build_dupfinder(srchlist, exclist=None, ignorepatlist=None):  #pylint: disab
         Returns: a DuplicateFinder object properly initialized, ready for search
     """
 
-    print "** 1. Creating file/directory structure **"
+    print ("** 1. Creating file/directory structure **")
     dup_obj = DuplicateFinder.DuplicateFinder()
 
     if exclist != None:
         for mypath in exclist:
             dup_obj.add2ignore(mypath)
-            print "      Ignoring: ", mypath
+            print ("      Ignoring: ", mypath)
 
     for mypath in srchlist:
         dup_obj.update(mypath)
-        print "      Building structure for: ", mypath
+        print ("      Building structure for: ", mypath)
 
     if (DEBUG): dup_obj.dump_files()
-    print "-- Directory structure creation complete --\n"
+    print ("-- Directory structure creation complete --\n")
     return dup_obj
 
 
@@ -77,7 +78,7 @@ def main(args):
     parsed_args = parser.parse_args(args)
 
     if parsed_args.version:
-        print 'DupFinder Version', __version__
+        print ('DupFinder Version', __version__)
         return
 
     if parsed_args.gui:         # gui mode
@@ -85,34 +86,34 @@ def main(args):
         return
 
     if parsed_args.srchlist==None:  # soft error condition
-        print '\nNo directory list specified; nothing to report. Exiting.\n'
+        print ('\nNo directory list specified; nothing to report. Exiting.\n')
         parser.print_help()
         return
     elif len(parsed_args.srchlist)!=2 and parsed_args.column: # error condition
-        print "ERROR. Column mode must have only 2 directories!"
+        print ("ERROR. Column mode must have only 2 directories!")
         parser.print_help()
         return
 
     if parsed_args.ignorepatlist:
-        print 'WARNING. This is unsupported at the moment. Will have no effect!!!'
-        print 'INFO. patterns to exclude:'
-        for p in parsed_args.ignorepatlist: print ' ', p
+        print ('WARNING. This is unsupported at the moment. Will have no effect!!!')
+        print ('INFO. patterns to exclude:')
+        for p in parsed_args.ignorepatlist: print (' ', p)
 
     if parsed_args.exclist:
-        print 'INFO. directories to exclude:'
-        for p in parsed_args.exclist: print ' ', p
+        print ('INFO. directories to exclude:')
+        for p in parsed_args.exclist: print (' ', p)
 
     dup_obj = build_dupfinder(parsed_args.srchlist, parsed_args.exclist)
-    print 'INFO. default matched names to exclude:'
-    for p in dup_obj._ignorematching: print ' ', p
+    print ('INFO. default matched names to exclude:')
+    for p in dup_obj._ignorematching: print (' ', p)
 
     if parsed_args.column:    # column mode
-        print '\nINFO. column mode specified for directories "{}" vs "{}"'.format(
-            parsed_args.srchlist[0], parsed_args.srchlist[1])
+        print ('\nINFO. column mode specified for directories "{}" vs "{}"'.format(
+            parsed_args.srchlist[0], parsed_args.srchlist[1]))
         dupdisp.colmode_srch(dup_obj)
     else:                     # standard mode
-        print '\nINFO. dirs to search :'
-        for p in parsed_args.srchlist: print ' ', p
+        print ('\nINFO. dirs to search :')
+        for p in parsed_args.srchlist: print (' ', p)
         dupdisp.stdmode_srch(dup_obj)
 
 

@@ -1,6 +1,7 @@
 """Wrapper functions for hashlib to generate hash sums on filenames"""
 #pylint: disable=bare-except
 
+
 import sys
 import hashlib
 import os.path
@@ -14,7 +15,7 @@ def _hashsum_fopen(fname):
     try:
         fid = open (fname, 'rb')
     except:
-        print 'Something wrong with file' , fname
+        print ('Something wrong with file' , fname)
         return None
     return fid
 
@@ -74,7 +75,7 @@ def gen_partial_hashsum(fname, hashtype, chunksize, offset=0):
         else:
             fin.seek(offset)
     except:
-        print 'ERROR. Could not perform fileseek by specified offset {}'.format(offset)
+        print ('ERROR. Could not perform fileseek by specified offset {}'.format(offset))
         fin.close()
         return None
 
@@ -127,17 +128,17 @@ def gen_partial_hashsums(fname, hashtype="md5", chunksize=SMALL_CHUNK, fsize=Non
 def main():
     imode = False
     if imode: # interactive mode
-        print "testing md5 sum -- " , "enter file name: "
-        fname = raw_input()
-        print "md5sum => ", gen_hashsum(fname, 'md5')
+        print ("testing md5 sum -- " , "enter file name: ")
+        fname = input() # raw_input()
+        print ("md5sum => ", gen_hashsum(fname, 'md5'))
     else:
         if (len(sys.argv) < 2):
-            print "No file entered... exiting"
+            print ("No file entered... exiting")
             return
 
-        print "testing md5 sum on file : ", sys.argv[1]
+        print ("testing md5 sum on file : ", sys.argv[1])
         fname = sys.argv[1]
-        print "md5sum => ", gen_hashsum(fname, 'md5')
+        print ("md5sum => ", gen_hashsum(fname, 'md5'))
 
 
 if (__name__ == "__main__"):
