@@ -23,11 +23,11 @@ def stdmode_srch(dup_obj):
         Returns: None
     """
 
-    print "** 2. Finding duplicates (standard mode)**"
+    print("** 2. Finding duplicates (standard mode)**")
     dup_obj.get_duplicates()
 
     logs, _ = dup_obj.dump_duplicates_list()
-    for l in logs: print l
+    for l in logs: print(l)
 
 
 # ------------------------------------------------------------------------- #
@@ -45,7 +45,7 @@ def colmode_srch(dup_obj):
          ======================
     """
 
-    print "** 2. Finding duplicates (column mode)**"
+    print("** 2. Finding duplicates (column mode)**")
 
     root1 = dup_obj._root_dirlist[0]
     root2 = dup_obj._root_dirlist[1]
@@ -59,7 +59,7 @@ def colmode_srch(dup_obj):
     maxlen = len(root1)
     root2len = max(40, len(root2))
 
-    for flist in dup_table.values():
+    for flist in list(dup_table.values()):
         flist.pop(0)
         flist1, flist2 = [], []
         for fname in flist:     # fname should be full (abs)path
@@ -71,7 +71,7 @@ def colmode_srch(dup_obj):
                 fsuffix = fname.replace(absroot2, '')
                 flist2.append(fsuffix[1:])
             else:
-                print 'WARNING. Cannot place {} in either {} or {}'.format(fname,root1,root2)
+                print('WARNING. Cannot place {} in either {} or {}'.format(fname,root1,root2))
                 continue
         # build a pair of lists fore each hashsum
         if (len(flist1) + len(flist2)) < 2:  # remove empty or single-elem lists
@@ -82,9 +82,9 @@ def colmode_srch(dup_obj):
 
     # display routine - root1_list & root2_list have everything
     linelen = maxlen + root2len + 3
-    print '=' * linelen
-    print '{0:{1}s} | {2:}'.format(root1, maxlen, root2)
-    print '=' * linelen
+    print('=' * linelen)
+    print('{0:{1}s} | {2:}'.format(root1, maxlen, root2))
+    print('=' * linelen)
     i = 0
     for (flist1,flist2) in zip(root1_list,root2_list):
         # flist1 and flist2 contain lists of identical files
@@ -95,8 +95,8 @@ def colmode_srch(dup_obj):
         for (f1,f2) in map(None, flist1,flist2):
             if (f1 == None): f1 = ' '
             if (f2 == None): f2 = ' '
-            print  '{0:{1}s} | {2:}'.format(f1, maxlen, f2)
+            print('{0:{1}s} | {2:}'.format(f1, maxlen, f2))
         i += 1
         if i < len(root1_list):
-            print '-' * maxlen, '+', '-'* root2len
-    print '=' * linelen
+            print('-' * maxlen, '+', '-'* root2len)
+    print('=' * linelen)

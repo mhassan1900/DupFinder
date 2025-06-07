@@ -2,15 +2,18 @@
 
 project=dupfinder
 save_lint=n
+pylintrc=.pylintrc
 
 all: 
 	@echo "Choose from following targets lint|install|uninstall|clean" 
 
 lint:
-	cd src && pylint --rcfile ../.pylintrc $(project) -f colorized  --files-output=$(save_lint) 
+	# cd src && pylint --rcfile ../.pylintrc $(project) -f colorized  --output $(save_lint) 
+	cd src && pylint --rcfile ../$(pylintrc) $(project) -f colorized  
 
 install:
-	python2.7 ./setup.py install --user
+	# python ./setup.py install --user
+	python ./setup.py install 
 
 uninstall:
 	pip uninstall $(project)

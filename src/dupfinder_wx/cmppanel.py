@@ -18,7 +18,7 @@ import os
 import os.path
 import wx
 import re
-from stdpanel import StdPanel
+from .stdpanel import StdPanel
 # from DuplicateFinder import get_qual, format_size
 
 _DEFWIDTH_ = 500

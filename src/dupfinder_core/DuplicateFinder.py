@@ -4,7 +4,7 @@ import sys
 import re
 import os
 import os.path as osp
-from hashsum import SMALL_CHUNK, gen_hashsum, gen_partial_hashsums #pylint: disable-msg=E0611
+from .hashsum import SMALL_CHUNK, gen_hashsum, gen_partial_hashsums #pylint: disable-msg=E0611
 
 _search_type_ = 1   # set to 2 for experimental type
 

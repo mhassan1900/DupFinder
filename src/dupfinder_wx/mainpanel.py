@@ -23,7 +23,8 @@ class MainPanel(wx.Panel):
         These two are needed during initialization OR set later on via set_stdview()
         and set_cmpview()'''
 
-        wx.Panel.__init__(self, parent=parent)
+        # wx.Panel.__init__(self, parent=parent)
+        super().__init__(parent)
 
         # variables need for non-GUI execution
         self.dirlist = []               # list of directories to search
@@ -32,14 +33,17 @@ class MainPanel(wx.Panel):
         self.srch_sizes_list = []       # list of sizes from search results
         self.filesel_list = []          # list of (checked) selections from search results
 
+        # Reference panels
         self.stdpanel = stdpanel
-        self.cmplanel = cmppanel
+        self.cmppanel = cmppanel
         self.dup_obj = dup_obj
 
+        # Initialize UI components
         self.initUI()                   # create all the widgets
         self.configureUI()              # configures widgets additionally
         self.displayUI()                # display them appropriately
         self.bindUI()                   # bind the functions
+
 
 
     # -------------------------- GUI Components --------------------------
@@ -85,17 +89,35 @@ class MainPanel(wx.Panel):
         """Performs additional configuration of GUI beyond just simple initialization,
         especially when related to geometries"""
 
-        self.t_add1.SetValue('Type in folder name & hit Enter to add to search. Press (-) to remove selections.')
-        self.t_add2.SetValue('Type in folder name & hit Enter to add to exclusions. Press (-) to remove selections.')
+        # self.t_add1.SetValue('Type in folder name & hit Enter to add to search. Press (-) to remove selections.')
+        # self.t_add2.SetValue('Type in folder name & hit Enter to add to exclusions. Press (-) to remove selections.')
+        # self.t_add1.SelectAll()
+        # self.t_add2.SelectAll()
+        # self.rb_finddup.SetValue(True)  # default mode
+        # self.sb_status.SetFieldsCount(2)
+        # #self.sb_status.SetStatusText( \
+        # #    "Steps: [1] Select folder(s) [2] Hit Search [3] Left mouse to select files, Right click to take action")
+        # self.sb_status.SetStatusWidths([-3, -1]) # doen't seem to work
+        # self.sb_status.SetFields( ['Steps: [1] Select folder(s) [2] Search [3] Choose a tab', '->'])
+        # ## self.g_progress = wx.Gauge(self.sb_status, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
+
+        self.t_add1.SetValue("Type in folder name & hit Enter to add to search. Press (-) to remove selections.")
+        self.t_add2.SetValue("Type in folder name & hit Enter to add to exclusions. Press (-) to remove selections.")
         self.t_add1.SelectAll()
         self.t_add2.SelectAll()
-        self.rb_finddup.SetValue(True)  # default mode
+        self.rb_finddup.SetValue(True)  # Default mode
+
+        # Modernizing status bar usage
         self.sb_status.SetFieldsCount(2)
-        #self.sb_status.SetStatusText( \
-        #    "Steps: [1] Select folder(s) [2] Hit Search [3] Left mouse to select files, Right click to take action")
-        self.sb_status.SetStatusWidths([-3, -1]) # doen't seem to work
-        self.sb_status.SetFields( ['Steps: [1] Select folder(s) [2] Search [3] Choose a tab', '->'])
-        ## self.g_progress = wx.Gauge(self.sb_status, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
+        self.sb_status.SetStatusWidths([-3, -1])
+        self.sb_status.SetStatusText("Steps: [1] Select folder(s) [2] Search [3] Choose a tab")
+        
+        # Ensure progress gauge is properly initialized within a sizer
+        self.g_progress = wx.Gauge(self, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)
+        self.sb_status_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sb_status_sizer.Add(self.g_progress, 1, wx.EXPAND)
+        self.sb_status.SetSizer(self.sb_status_sizer)
+
 
     # -------------------------------------------------------------------------------- #
     def displayUI(self):
@@ -245,7 +267,7 @@ class MainPanel(wx.Panel):
 
         self.cprint()
         self.cprint( 'INFO. matched dirs to exclude:' )
-        print self.dup_obj
+        print (self.dup_obj)
         self.cprint( repr(self.dup_obj._ignorematching) +'\n' )
 
         # go by what is in dirlist NOT what is displayed    # TODO

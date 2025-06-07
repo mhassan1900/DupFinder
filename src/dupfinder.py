@@ -82,7 +82,9 @@ def main(args):
         return
 
     if parsed_args.gui:         # gui mode
-        guimain()
+        # guimain()
+        # fixme. no gui mode for now
+        print ("ERROR. No guimain() function - gui absent in this version") 
         return
 
     if parsed_args.srchlist==None:  # soft error condition
